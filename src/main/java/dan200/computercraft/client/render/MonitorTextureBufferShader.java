@@ -5,13 +5,14 @@
  */
 package dan200.computercraft.client.render;
 
+import com.electronwill.nightconfig.core.conversion.InvalidValueException;
 import com.mojang.blaze3d.shaders.Uniform;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import dan200.computercraft.client.FrameInfo;
 import dan200.computercraft.client.render.text.FixedWidthFontRenderer;
 import dan200.computercraft.core.terminal.Terminal;
-import dan200.computercraft.core.terminal.TextBuffer;
-import dan200.computercraft.shared.util.Colour;
+import dan200.computercraft.core.terminal.Buffer;
+import dan200.computercraft.shared.util.ColourUtils;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceProvider;
@@ -24,11 +25,9 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import static dan200.computercraft.client.render.text.FixedWidthFontRenderer.getColour;
-
 public class MonitorTextureBufferShader extends ShaderInstance
 {
-    public static final int UNIFORM_SIZE = 4 * 4 * 16 + 4 + 4 + 2 * 4 + 4;
+    public static final int UNIFORM_SIZE = 4 + 4 + 2 * 4 + 4;
 
     static final int TEXTURE_INDEX = GL13.GL_TEXTURE3;
 
@@ -85,13 +84,20 @@ public class MonitorTextureBufferShader extends ShaderInstance
         int pos = 0;
         for( int y = 0; y < height; y++ )
         {
-            TextBuffer text = terminal.getLine( y ), textColour = terminal.getTextColourLine( y ), background = terminal.getBackgroundColourLine( y );
+            Buffer<Character> text = terminal.getLine( y );
+            Buffer<Integer> textColour = terminal.getTextColourLine( y ), background = terminal.getBackgroundColourLine( y );
             for( int x = 0; x < width; x++ )
             {
-                buffer.put( pos, (byte) (text.charAt( x ) & 0xFF) );
-                buffer.put( pos + 1, (byte) getColour( textColour.charAt( x ), Colour.WHITE ) );
-                buffer.put( pos + 2, (byte) getColour( background.charAt( x ), Colour.BLACK ) );
-                pos += 3;
+                buffer.put( pos, (byte) (text.elementAt( x ) & 0xFF) );
+                byte[] color = ColourUtils.intToBytes(textColour.elementAt( x ));
+                buffer.put( pos + 1,  color[0]);
+                buffer.put( pos + 2,  color[1]);
+                buffer.put( pos + 3,  color[2]);
+                color = ColourUtils.intToBytes(background.elementAt( x ));
+                buffer.put( pos + 4,  color[0]);
+                buffer.put( pos + 5,  color[1]);
+                buffer.put( pos + 6,  color[2]);
+                pos += 7;
             }
         }
 
@@ -101,31 +107,16 @@ public class MonitorTextureBufferShader extends ShaderInstance
     public static void setUniformData( ByteBuffer buffer, Terminal terminal )
     {
         int pos = 0;
-        var palette = terminal.getPalette();
-        for( int i = 0; i < 16; i++ )
-        {
-            {
-                double[] colour = palette.getColour( i );
-                if( !terminal.isColour() )
-                {
-                    float f = FixedWidthFontRenderer.toGreyscale( colour );
-                    buffer.putFloat( pos, f ).putFloat( pos + 4, f ).putFloat( pos + 8, f );
-                }
-                else
-                {
-                    buffer.putFloat( pos, (float) colour[0] ).putFloat( pos + 4, (float) colour[1] ).putFloat( pos + 8, (float) colour[2] );
-                }
-            }
-
-            pos += 4 * 4; // std140 requires these are 4-wide
-        }
 
         boolean showCursor = FixedWidthFontRenderer.isCursorVisible( terminal );
         buffer
             .putInt( pos, terminal.getWidth() ).putInt( pos + 4, terminal.getHeight() )
             .putInt( pos + 8, showCursor ? terminal.getCursorX() : -2 )
             .putInt( pos + 12, showCursor ? terminal.getCursorY() : -2 )
-            .putInt( pos + 16, 15 - terminal.getTextColour() );
+            .putInt( pos + 16, terminal.getTextColour() );
+
+        if (pos != UNIFORM_SIZE)
+            throw new InvalidValueException("pos != UNIFORM_SIZE");
 
         buffer.limit( UNIFORM_SIZE );
     }

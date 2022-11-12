@@ -69,7 +69,7 @@ public class ItemPrintout extends Item
     }
 
     @Nonnull
-    private ItemStack createFromTitleAndText( String title, String[] text, String[] colours )
+    private ItemStack createFromTitleAndText( String title, String[] text, int[][] colours )
     {
         ItemStack stack = new ItemStack( this );
 
@@ -89,7 +89,7 @@ public class ItemPrintout extends Item
             CompoundTag tag = stack.getOrCreateTag();
             for( int i = 0; i < colours.length; i++ )
             {
-                if( colours[i] != null ) tag.putString( NBT_LINE_COLOUR + i, colours[i] );
+                if( colours[i] != null ) tag.putIntArray( NBT_LINE_COLOUR + i, colours[i] );
             }
         }
 
@@ -98,19 +98,19 @@ public class ItemPrintout extends Item
     }
 
     @Nonnull
-    public static ItemStack createSingleFromTitleAndText( String title, String[] text, String[] colours )
+    public static ItemStack createSingleFromTitleAndText( String title, String[] text, int[][] colours )
     {
         return Registry.ModItems.PRINTED_PAGE.get().createFromTitleAndText( title, text, colours );
     }
 
     @Nonnull
-    public static ItemStack createMultipleFromTitleAndText( String title, String[] text, String[] colours )
+    public static ItemStack createMultipleFromTitleAndText( String title, String[] text, int[][] colours )
     {
         return Registry.ModItems.PRINTED_PAGES.get().createFromTitleAndText( title, text, colours );
     }
 
     @Nonnull
-    public static ItemStack createBookFromTitleAndText( String title, String[] text, String[] colours )
+    public static ItemStack createBookFromTitleAndText( String title, String[] text, int[][] colours )
     {
         return Registry.ModItems.PRINTED_BOOK.get().createFromTitleAndText( title, text, colours );
     }
@@ -137,9 +137,16 @@ public class ItemPrintout extends Item
         return getLines( stack, NBT_LINE_TEXT );
     }
 
-    public static String[] getColours( @Nonnull ItemStack stack )
+    public static int[][] getColours( @Nonnull ItemStack stack )
     {
-        return getLines( stack, NBT_LINE_COLOUR );
+        CompoundTag nbt = stack.getTag();
+        int numLines = getPageCount( stack ) * LINES_PER_PAGE;
+        int[][] lines = new int[numLines][];
+        for( int i = 0; i < lines.length; i++ )
+        {
+            lines[i] = nbt != null ? nbt.getIntArray( NBT_LINE_COLOUR + i ) : new int[] {};
+        }
+        return lines;
     }
 
     private static String[] getLines( @Nonnull ItemStack stack, String prefix )

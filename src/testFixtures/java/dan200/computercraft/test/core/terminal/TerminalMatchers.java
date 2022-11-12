@@ -6,7 +6,7 @@
 package dan200.computercraft.test.core.terminal;
 
 import dan200.computercraft.core.terminal.Terminal;
-import dan200.computercraft.core.terminal.TextBuffer;
+import dan200.computercraft.core.terminal.Buffer;
 import dan200.computercraft.test.core.ContramapMatcher;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
@@ -48,7 +48,7 @@ public class TerminalMatchers
     @FunctionalInterface
     public interface LineProvider
     {
-        TextBuffer getLine( Terminal terminal, int line );
+        Buffer getLine( Terminal terminal, int line );
     }
 
 }

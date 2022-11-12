@@ -14,28 +14,28 @@ class TextBufferTest
     @Test
     void testStringConstructor()
     {
-        TextBuffer textBuffer = new TextBuffer( "test" );
+        Buffer textBuffer = new Buffer( "test" );
         assertEquals( "test", textBuffer.toString() );
     }
 
     @Test
     void testCharRepetitionConstructor()
     {
-        TextBuffer textBuffer = new TextBuffer( 'a', 5 );
+        Buffer textBuffer = new Buffer( 'a', 5 );
         assertEquals( "aaaaa", textBuffer.toString() );
     }
 
     @Test
     void testLength()
     {
-        TextBuffer textBuffer = new TextBuffer( "test" );
+        Buffer textBuffer = new Buffer( "test" );
         assertEquals( 4, textBuffer.length() );
     }
 
     @Test
     void testWrite()
     {
-        TextBuffer textBuffer = new TextBuffer( ' ', 4 );
+        Buffer textBuffer = new Buffer( ' ', 4 );
         textBuffer.write( "test" );
         assertEquals( "test", textBuffer.toString() );
     }
@@ -43,8 +43,8 @@ class TextBufferTest
     @Test
     void testWriteTextBuffer()
     {
-        TextBuffer source = new TextBuffer( "test" );
-        TextBuffer target = new TextBuffer( "    " );
+        Buffer source = new Buffer( "test" );
+        Buffer target = new Buffer( "    " );
         target.write( source );
         assertEquals( "test", target.toString() );
     }
@@ -52,7 +52,7 @@ class TextBufferTest
     @Test
     void testWriteFromPos()
     {
-        TextBuffer textBuffer = new TextBuffer( "test" );
+        Buffer textBuffer = new Buffer( "test" );
         textBuffer.write( "il", 1 );
         assertEquals( "tilt", textBuffer.toString() );
     }
@@ -60,7 +60,7 @@ class TextBufferTest
     @Test
     void testWriteOutOfBounds()
     {
-        TextBuffer textBuffer = new TextBuffer( "test" );
+        Buffer textBuffer = new Buffer( "test" );
         textBuffer.write( "abcdefghijklmnop", -5 );
         assertEquals( "fghi", textBuffer.toString() );
     }
@@ -68,7 +68,7 @@ class TextBufferTest
     @Test
     void testWriteOutOfBounds2()
     {
-        TextBuffer textBuffer = new TextBuffer( "             " );
+        Buffer textBuffer = new Buffer( "             " );
         textBuffer.write( "Hello, world!", -3 );
         assertEquals( "lo, world!   ", textBuffer.toString() );
     }
@@ -76,7 +76,7 @@ class TextBufferTest
     @Test
     void testFill()
     {
-        TextBuffer textBuffer = new TextBuffer( "test" );
+        Buffer textBuffer = new Buffer( "test" );
         textBuffer.fill( 'c' );
         assertEquals( "cccc", textBuffer.toString() );
     }
@@ -84,7 +84,7 @@ class TextBufferTest
     @Test
     void testFillSubstring()
     {
-        TextBuffer textBuffer = new TextBuffer( "test" );
+        Buffer textBuffer = new Buffer( "test" );
         textBuffer.fill( 'c', 1, 3 );
         assertEquals( "tcct", textBuffer.toString() );
     }
@@ -92,7 +92,7 @@ class TextBufferTest
     @Test
     void testFillOutOfBounds()
     {
-        TextBuffer textBuffer = new TextBuffer( "test" );
+        Buffer textBuffer = new Buffer( "test" );
         textBuffer.fill( 'c', -5, 5 );
         assertEquals( "cccc", textBuffer.toString() );
     }
@@ -100,14 +100,14 @@ class TextBufferTest
     @Test
     void testCharAt()
     {
-        TextBuffer textBuffer = new TextBuffer( "test" );
+        Buffer textBuffer = new Buffer( "test" );
         assertEquals( 'e', textBuffer.charAt( 1 ) );
     }
 
     @Test
     void testSetChar()
     {
-        TextBuffer textBuffer = new TextBuffer( "test" );
+        Buffer textBuffer = new Buffer( "test" );
         textBuffer.setChar( 2, 'n' );
         assertEquals( "tent", textBuffer.toString() );
     }
@@ -115,7 +115,7 @@ class TextBufferTest
     @Test
     void testSetCharWithNegativeIndex()
     {
-        TextBuffer textBuffer = new TextBuffer( "test" );
+        Buffer textBuffer = new Buffer( "test" );
         textBuffer.setChar( -5, 'n' );
         assertEquals( "test", textBuffer.toString(), "Buffer should not change after setting char with negative index." );
     }
@@ -123,7 +123,7 @@ class TextBufferTest
     @Test
     void testSetCharWithIndexBeyondBufferEnd()
     {
-        TextBuffer textBuffer = new TextBuffer( "test" );
+        Buffer textBuffer = new Buffer( "test" );
         textBuffer.setChar( 10, 'n' );
         assertEquals( "test", textBuffer.toString(), "Buffer should not change after setting char beyond buffer end." );
     }
@@ -131,7 +131,7 @@ class TextBufferTest
     @Test
     void testMultipleOperations()
     {
-        TextBuffer textBuffer = new TextBuffer( ' ', 5 );
+        Buffer textBuffer = new Buffer( ' ', 5 );
         textBuffer.setChar( 0, 'H' );
         textBuffer.setChar( 1, 'e' );
         textBuffer.setChar( 2, 'l' );
@@ -142,7 +142,7 @@ class TextBufferTest
     @Test
     void testEmptyBuffer()
     {
-        TextBuffer textBuffer = new TextBuffer( "" );
+        Buffer textBuffer = new Buffer( "" );
         // exception on writing to empty buffer would fail the test
         textBuffer.write( "test" );
         assertEquals( "", textBuffer.toString() );

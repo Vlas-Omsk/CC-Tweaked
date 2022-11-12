@@ -6,7 +6,7 @@
 package dan200.computercraft.shared.computer.terminal;
 
 import dan200.computercraft.core.terminal.Terminal;
-import dan200.computercraft.core.terminal.TextBuffer;
+import dan200.computercraft.core.terminal.Buffer;
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
 import org.junit.jupiter.api.RepeatedTest;
@@ -50,7 +50,7 @@ public class TerminalStateTest
         NetworkedTerminal terminal = new NetworkedTerminal( 10, 5, true );
         for( int y = 0; y < terminal.getHeight(); y++ )
         {
-            TextBuffer buffer = terminal.getLine( y );
+            Buffer buffer = terminal.getLine( y );
             for( int x = 0; x < buffer.length(); x++ ) buffer.setChar( x, (char) (random.nextInt( 26 ) + 65) );
         }
 

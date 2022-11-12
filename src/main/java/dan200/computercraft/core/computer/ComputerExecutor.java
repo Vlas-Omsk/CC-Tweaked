@@ -175,6 +175,7 @@ final class ComputerExecutor
         Environment environment = computer.getEnvironment();
 
         // Add all default APIs to the loaded list.
+        apis.add( new ColourUtilsAPI( environment ) );
         apis.add( new TermAPI( environment ) );
         apis.add( new RedstoneAPI( environment ) );
         apis.add( new FSAPI( environment ) );

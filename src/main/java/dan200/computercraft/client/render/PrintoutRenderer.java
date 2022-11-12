@@ -9,12 +9,13 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Matrix4f;
 import dan200.computercraft.client.render.text.FixedWidthFontRenderer;
-import dan200.computercraft.core.terminal.TextBuffer;
-import dan200.computercraft.shared.util.Palette;
+import dan200.computercraft.core.terminal.Buffer;
 import net.minecraft.client.renderer.MultiBufferSource;
 
 import static dan200.computercraft.client.render.text.FixedWidthFontRenderer.FONT_HEIGHT;
 import static dan200.computercraft.shared.media.items.ItemPrintout.LINES_PER_PAGE;
+
+import org.apache.commons.lang3.ArrayUtils;
 
 public final class PrintoutRenderer
 {
@@ -55,20 +56,19 @@ public final class PrintoutRenderer
 
     private PrintoutRenderer() {}
 
-    public static void drawText( PoseStack transform, MultiBufferSource bufferSource, int x, int y, int start, int light, TextBuffer[] text, TextBuffer[] colours )
+    public static void drawText( PoseStack transform, MultiBufferSource bufferSource, int x, int y, int start, int light, Buffer<Character>[] text, Buffer<Integer>[] colours )
     {
         var buffer = bufferSource.getBuffer( RenderTypes.PRINTOUT_TEXT );
         var emitter = FixedWidthFontRenderer.toVertexConsumer( transform, buffer );
         for( int line = 0; line < LINES_PER_PAGE && line < text.length; line++ )
         {
             FixedWidthFontRenderer.drawString( emitter,
-                x, y + line * FONT_HEIGHT, text[start + line], colours[start + line],
-                Palette.DEFAULT, light
+                x, y + line * FONT_HEIGHT, text[start + line], colours[start + line], light
             );
         }
     }
 
-    public static void drawText( PoseStack transform, MultiBufferSource bufferSource, int x, int y, int start, int light, String[] text, String[] colours )
+    public static void drawText( PoseStack transform, MultiBufferSource bufferSource, int x, int y, int start, int light, String[] text, int[][] colours )
     {
         var buffer = bufferSource.getBuffer( RenderTypes.PRINTOUT_TEXT );
         var emitter = FixedWidthFontRenderer.toVertexConsumer( transform, buffer );
@@ -76,8 +76,7 @@ public final class PrintoutRenderer
         {
             FixedWidthFontRenderer.drawString( emitter,
                 x, y + line * FONT_HEIGHT,
-                new TextBuffer( text[start + line] ), new TextBuffer( colours[start + line] ),
-                Palette.DEFAULT, light
+                new Buffer<Character>( ArrayUtils.toObject(text[start + line].toCharArray()) ), new Buffer<Integer>( ArrayUtils.toObject(colours[start + line]) ), light
             );
         }
     }

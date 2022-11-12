@@ -100,7 +100,7 @@ public final class PrintoutRecipe extends CustomRecipe
         if( numPages <= ItemPrintout.MAX_PAGES && stringFound && printoutFound && numPrintouts >= (leatherFound ? 1 : 2) )
         {
             String[] text = new String[numPages * ItemPrintout.LINES_PER_PAGE];
-            String[] colours = new String[numPages * ItemPrintout.LINES_PER_PAGE];
+            int[][] colours = new int[numPages * ItemPrintout.LINES_PER_PAGE][];
             int line = 0;
 
             for( int printout = 0; printout < numPrintouts; printout++ )
@@ -110,7 +110,7 @@ public final class PrintoutRecipe extends CustomRecipe
                 {
                     // Add a printout
                     String[] pageText = ItemPrintout.getText( printouts[printout] );
-                    String[] pageColours = ItemPrintout.getColours( printouts[printout] );
+                    int[][] pageColours = ItemPrintout.getColours( printouts[printout] );
                     for( int pageLine = 0; pageLine < pageText.length; pageLine++ )
                     {
                         text[line] = pageText[pageLine];
@@ -124,7 +124,7 @@ public final class PrintoutRecipe extends CustomRecipe
                     for( int pageLine = 0; pageLine < ItemPrintout.LINES_PER_PAGE; pageLine++ )
                     {
                         text[line] = "";
-                        colours[line] = "";
+                        colours[line] = new int[] {};
                         line++;
                     }
                 }

@@ -31,25 +31,6 @@ parent, and only one of which is visible at a time.
 
 local expect = dofile("rom/modules/main/cc/expect.lua").expect
 
-local tHex = {
-    [colors.white] = "0",
-    [colors.orange] = "1",
-    [colors.magenta] = "2",
-    [colors.lightBlue] = "3",
-    [colors.yellow] = "4",
-    [colors.lime] = "5",
-    [colors.pink] = "6",
-    [colors.gray] = "7",
-    [colors.lightGray] = "8",
-    [colors.cyan] = "9",
-    [colors.purple] = "a",
-    [colors.blue] = "b",
-    [colors.brown] = "c",
-    [colors.green] = "d",
-    [colors.red] = "e",
-    [colors.black] = "f",
-}
-
 local type = type
 local string_rep = string.rep
 local string_sub = string.sub
@@ -101,14 +82,18 @@ function create(parent, nX, nY, nWidth, nHeight, bStartVisible)
     end
 
     local sEmptySpaceLine
-    local tEmptyColorLines = {}
     local function createEmptyLines(nWidth)
         sEmptySpaceLine = string_rep(" ", nWidth)
-        for n = 0, 15 do
-            local nColor = 2 ^ n
-            local sHex = tHex[nColor]
-            tEmptyColorLines[nColor] = string_rep(sHex, nWidth)
+    end
+
+    local function createEmptyColorLine(color, width)
+        local rgb = colourUtils.intToString(color)
+
+        if width == nil then
+            width = nWidth
         end
+
+        return string_rep(rgb, width)
     end
 
     createEmptyLines(nWidth)
@@ -121,22 +106,16 @@ function create(parent, nX, nY, nWidth, nHeight, bStartVisible)
     local nTextColor = colors.white
     local nBackgroundColor = colors.black
     local tLines = {}
-    local tPalette = {}
     do
         local sEmptyText = sEmptySpaceLine
-        local sEmptyTextColor = tEmptyColorLines[nTextColor]
-        local sEmptyBackgroundColor = tEmptyColorLines[nBackgroundColor]
+        local sEmptyTextColor = createEmptyColorLine(nTextColor)
+        local sEmptyBackgroundColor = createEmptyColorLine(nBackgroundColor)
         for y = 1, nHeight do
             tLines[y] = {
                 text = sEmptyText,
                 textColor = sEmptyTextColor,
                 backgroundColor = sEmptyBackgroundColor,
             }
-        end
-
-        for i = 0, 15 do
-            local c = 2 ^ i
-            tPalette[c] = { parent.getPaletteColour(c) }
         end
     end
 
@@ -170,13 +149,11 @@ function create(parent, nX, nY, nWidth, nHeight, bStartVisible)
         end
     end
 
-    local function updatePalette()
-        for k, v in pairs(tPalette) do
-            parent.setPaletteColour(k, v[1], v[2], v[3])
-        end
-    end
-
     local function internalBlit(sText, sTextColor, sBackgroundColor)
+        if #sText ~= #sTextColor / 3 or #sText ~= #sBackgroundColor / 3 then
+            error('Not equals')
+        end
+
         local nStart = nCursorX
         local nEnd = nStart + #sText - 1
         if nCursorY >= 1 and nCursorY <= nHeight then
@@ -193,13 +170,13 @@ function create(parent, nX, nY, nWidth, nHeight, bStartVisible)
                         local nClipStart = 1 - nStart + 1
                         local nClipEnd = nWidth - nStart + 1
                         sClippedText = string_sub(sText, nClipStart, nClipEnd)
-                        sClippedTextColor = string_sub(sTextColor, nClipStart, nClipEnd)
-                        sClippedBackgroundColor = string_sub(sBackgroundColor, nClipStart, nClipEnd)
+                        sClippedTextColor = string_sub(sTextColor, ((nClipStart - 1) * 3) + 1, nClipEnd * 3)
+                        sClippedBackgroundColor = string_sub(sBackgroundColor, ((nClipStart - 1) * 3) + 1, nClipEnd * 3)
                     elseif nEnd > nWidth then
                         local nClipEnd = nWidth - nStart + 1
                         sClippedText = string_sub(sText, 1, nClipEnd)
-                        sClippedTextColor = string_sub(sTextColor, 1, nClipEnd)
-                        sClippedBackgroundColor = string_sub(sBackgroundColor, 1, nClipEnd)
+                        sClippedTextColor = string_sub(sTextColor, 1, nClipEnd * 3)
+                        sClippedBackgroundColor = string_sub(sBackgroundColor, 1, nClipEnd * 3)
                     else
                         sClippedText = sText
                         sClippedTextColor = sTextColor
@@ -213,8 +190,8 @@ function create(parent, nX, nY, nWidth, nHeight, bStartVisible)
                     if nStart > 1 then
                         local nOldEnd = nStart - 1
                         sNewText = string_sub(sOldText, 1, nOldEnd) .. sClippedText
-                        sNewTextColor = string_sub(sOldTextColor, 1, nOldEnd) .. sClippedTextColor
-                        sNewBackgroundColor = string_sub(sOldBackgroundColor, 1, nOldEnd) .. sClippedBackgroundColor
+                        sNewTextColor = string_sub(sOldTextColor, 1, nOldEnd * 3) .. sClippedTextColor
+                        sNewBackgroundColor = string_sub(sOldBackgroundColor, 1, nOldEnd * 3) .. sClippedBackgroundColor
                     else
                         sNewText = sClippedText
                         sNewTextColor = sClippedTextColor
@@ -223,8 +200,8 @@ function create(parent, nX, nY, nWidth, nHeight, bStartVisible)
                     if nEnd < nWidth then
                         local nOldStart = nEnd + 1
                         sNewText = sNewText .. string_sub(sOldText, nOldStart, nWidth)
-                        sNewTextColor = sNewTextColor .. string_sub(sOldTextColor, nOldStart, nWidth)
-                        sNewBackgroundColor = sNewBackgroundColor .. string_sub(sOldBackgroundColor, nOldStart, nWidth)
+                        sNewTextColor = sNewTextColor .. string_sub(sOldTextColor, ((nOldStart - 1) * 3) + 1, nWidth * 3)
+                        sNewBackgroundColor = sNewBackgroundColor .. string_sub(sOldBackgroundColor, ((nOldStart - 1) * 3) + 1, nWidth * 3)
                     end
 
                     tLine.text = sNewText
@@ -256,25 +233,23 @@ function create(parent, nX, nY, nWidth, nHeight, bStartVisible)
 
     function window.write(sText)
         sText = tostring(sText)
-        internalBlit(sText, string_rep(tHex[nTextColor], #sText), string_rep(tHex[nBackgroundColor], #sText))
+        internalBlit(sText, createEmptyColorLine(nTextColor, #sText), createEmptyColorLine(nBackgroundColor, #sText))
     end
 
     function window.blit(sText, sTextColor, sBackgroundColor)
         if type(sText) ~= "string" then expect(1, sText, "string") end
         if type(sTextColor) ~= "string" then expect(2, sTextColor, "string") end
         if type(sBackgroundColor) ~= "string" then expect(3, sBackgroundColor, "string") end
-        if #sTextColor ~= #sText or #sBackgroundColor ~= #sText then
+        if #sTextColor / 3 ~= #sText or #sBackgroundColor / 3 ~= #sText then
             error("Arguments must be the same length", 2)
         end
-        sTextColor = sTextColor:lower()
-        sBackgroundColor = sBackgroundColor:lower()
         internalBlit(sText, sTextColor, sBackgroundColor)
     end
 
     function window.clear()
         local sEmptyText = sEmptySpaceLine
-        local sEmptyTextColor = tEmptyColorLines[nTextColor]
-        local sEmptyBackgroundColor = tEmptyColorLines[nBackgroundColor]
+        local sEmptyTextColor = createEmptyColorLine(nTextColor)
+        local sEmptyBackgroundColor = createEmptyColorLine(nBackgroundColor)
         for y = 1, nHeight do
             tLines[y] = {
                 text = sEmptyText,
@@ -292,8 +267,8 @@ function create(parent, nX, nY, nWidth, nHeight, bStartVisible)
     function window.clearLine()
         if nCursorY >= 1 and nCursorY <= nHeight then
             local sEmptyText = sEmptySpaceLine
-            local sEmptyTextColor = tEmptyColorLines[nTextColor]
-            local sEmptyBackgroundColor = tEmptyColorLines[nBackgroundColor]
+            local sEmptyTextColor = createEmptyColorLine(nTextColor)
+            local sEmptyBackgroundColor = createEmptyColorLine(nBackgroundColor)
             tLines[nCursorY] = {
                 text = sEmptyText,
                 textColor = sEmptyTextColor,
@@ -347,9 +322,6 @@ function create(parent, nX, nY, nWidth, nHeight, bStartVisible)
 
     local function setTextColor(color)
         if type(color) ~= "number" then expect(1, color, "number") end
-        if tHex[color] == nil then
-            error("Invalid color (got " .. color .. ")" , 2)
-        end
 
         nTextColor = color
         if bVisible then
@@ -360,51 +332,8 @@ function create(parent, nX, nY, nWidth, nHeight, bStartVisible)
     window.setTextColor = setTextColor
     window.setTextColour = setTextColor
 
-    function window.setPaletteColour(colour, r, g, b)
-        if type(colour) ~= "number" then expect(1, colour, "number") end
-
-        if tHex[colour] == nil then
-            error("Invalid color (got " .. colour .. ")" , 2)
-        end
-
-        local tCol
-        if type(r) == "number" and g == nil and b == nil then
-            tCol = { colours.unpackRGB(r) }
-            tPalette[colour] = tCol
-        else
-            if type(r) ~= "number" then expect(2, r, "number") end
-            if type(g) ~= "number" then expect(3, g, "number") end
-            if type(b) ~= "number" then expect(4, b, "number") end
-
-            tCol = tPalette[colour]
-            tCol[1] = r
-            tCol[2] = g
-            tCol[3] = b
-        end
-
-        if bVisible then
-            return parent.setPaletteColour(colour, tCol[1], tCol[2], tCol[3])
-        end
-    end
-
-    window.setPaletteColor = window.setPaletteColour
-
-    function window.getPaletteColour(colour)
-        if type(colour) ~= "number" then expect(1, colour, "number") end
-        if tHex[colour] == nil then
-            error("Invalid color (got " .. colour .. ")" , 2)
-        end
-        local tCol = tPalette[colour]
-        return tCol[1], tCol[2], tCol[3]
-    end
-
-    window.getPaletteColor = window.getPaletteColour
-
     local function setBackgroundColor(color)
         if type(color) ~= "number" then expect(1, color, "number") end
-        if tHex[color] == nil then
-            error("Invalid color (got " .. color .. ")", 2)
-        end
         nBackgroundColor = color
     end
 
@@ -420,8 +349,8 @@ function create(parent, nX, nY, nWidth, nHeight, bStartVisible)
         if n ~= 0 then
             local tNewLines = {}
             local sEmptyText = sEmptySpaceLine
-            local sEmptyTextColor = tEmptyColorLines[nTextColor]
-            local sEmptyBackgroundColor = tEmptyColorLines[nBackgroundColor]
+            local sEmptyTextColor = createEmptyColorLine(nTextColor)
+            local sEmptyBackgroundColor = createEmptyColorLine(nBackgroundColor)
             for newY = 1, nHeight do
                 local y = newY + n
                 if y >= 1 and y <= nHeight then
@@ -510,7 +439,6 @@ function create(parent, nX, nY, nWidth, nHeight, bStartVisible)
     function window.redraw()
         if bVisible then
             redraw()
-            updatePalette()
             updateCursorBlink()
             updateCursorColor()
             updateCursorPos()
@@ -566,8 +494,8 @@ function create(parent, nX, nY, nWidth, nHeight, bStartVisible)
             local tNewLines = {}
             createEmptyLines(new_width)
             local sEmptyText = sEmptySpaceLine
-            local sEmptyTextColor = tEmptyColorLines[nTextColor]
-            local sEmptyBackgroundColor = tEmptyColorLines[nBackgroundColor]
+            local sEmptyTextColor = createEmptyColorLine(nTextColor)
+            local sEmptyBackgroundColor = createEmptyColorLine(nBackgroundColor)
             for y = 1, new_height do
                 if y > nHeight then
                     tNewLines[y] = {
@@ -582,14 +510,14 @@ function create(parent, nX, nY, nWidth, nHeight, bStartVisible)
                     elseif new_width < nWidth then
                         tNewLines[y] = {
                             text = string_sub(tOldLine.text, 1, new_width),
-                            textColor = string_sub(tOldLine.textColor, 1, new_width),
-                            backgroundColor = string_sub(tOldLine.backgroundColor, 1, new_width),
+                            textColor = string_sub(tOldLine.textColor, 1, new_width * 3),
+                            backgroundColor = string_sub(tOldLine.backgroundColor, 1, new_width * 3),
                         }
                     else
                         tNewLines[y] = {
                             text = tOldLine.text .. string_sub(sEmptyText, nWidth + 1, new_width),
-                            textColor = tOldLine.textColor .. string_sub(sEmptyTextColor, nWidth + 1, new_width),
-                            backgroundColor = tOldLine.backgroundColor .. string_sub(sEmptyBackgroundColor, nWidth + 1, new_width),
+                            textColor = tOldLine.textColor .. string_sub(sEmptyTextColor, nWidth * 3 + 1, new_width * 3),
+                            backgroundColor = tOldLine.backgroundColor .. string_sub(sEmptyBackgroundColor, nWidth * 3 + 1, new_width * 3),
                         }
                     end
                 end

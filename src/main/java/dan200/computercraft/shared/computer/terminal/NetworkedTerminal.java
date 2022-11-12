@@ -6,10 +6,12 @@
 package dan200.computercraft.shared.computer.terminal;
 
 import dan200.computercraft.core.terminal.Terminal;
-import dan200.computercraft.core.terminal.TextBuffer;
-import dan200.computercraft.shared.util.Colour;
+import dan200.computercraft.core.terminal.Buffer;
+import dan200.computercraft.shared.util.ColourUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+
+import org.apache.commons.lang3.ArrayUtils;
 
 public class NetworkedTerminal extends Terminal
 {
@@ -28,25 +30,22 @@ public class NetworkedTerminal extends Terminal
         buffer.writeInt( cursorX );
         buffer.writeInt( cursorY );
         buffer.writeBoolean( cursorBlink );
-        buffer.writeByte( cursorBackgroundColour << 4 | cursorColour );
+        buffer.writeInt( cursorBackgroundColour );
+        buffer.writeInt( cursorColour );
 
         for( int y = 0; y < height; y++ )
         {
-            TextBuffer text = this.text[y];
-            TextBuffer textColour = this.textColour[y];
-            TextBuffer backColour = backgroundColour[y];
+            Buffer<Character> text = (Buffer<Character>) this.text[y];
+            Buffer<Integer> textColour = (Buffer<Integer>) this.textColour[y];
+            Buffer<Integer> backColour = (Buffer<Integer>) backgroundColour[y];
 
-            for( int x = 0; x < width; x++ ) buffer.writeByte( text.charAt( x ) & 0xFF );
+            for( int x = 0; x < width; x++ ) buffer.writeByte( text.elementAt( x ) & 0xFF );
             for( int x = 0; x < width; x++ )
             {
-                buffer.writeByte( getColour(
-                    backColour.charAt( x ), Colour.BLACK ) << 4 |
-                    getColour( textColour.charAt( x ), Colour.WHITE )
-                );
+                buffer.writeInt( backColour.elementAt( x ) );
+                buffer.writeInt( textColour.elementAt( x ) );
             }
         }
-
-        palette.write( buffer );
     }
 
     public synchronized void read( FriendlyByteBuf buffer )
@@ -55,26 +54,23 @@ public class NetworkedTerminal extends Terminal
         cursorY = buffer.readInt();
         cursorBlink = buffer.readBoolean();
 
-        byte cursorColour = buffer.readByte();
-        cursorBackgroundColour = (cursorColour >> 4) & 0xF;
-        this.cursorColour = cursorColour & 0xF;
+        cursorBackgroundColour = buffer.readInt();
+        cursorColour = buffer.readInt();
 
         for( int y = 0; y < height; y++ )
         {
-            TextBuffer text = this.text[y];
-            TextBuffer textColour = this.textColour[y];
-            TextBuffer backColour = backgroundColour[y];
+            Buffer<Character> text = (Buffer<Character>) this.text[y];
+            Buffer<Integer> textColour = (Buffer<Integer>) this.textColour[y];
+            Buffer<Integer> backColour = (Buffer<Integer>) backgroundColour[y];
 
-            for( int x = 0; x < width; x++ ) text.setChar( x, (char) (buffer.readByte() & 0xFF) );
+            for( int x = 0; x < width; x++ ) text.set( x, (char) (buffer.readByte() & 0xFF) );
             for( int x = 0; x < width; x++ )
             {
-                byte colour = buffer.readByte();
-                backColour.setChar( x, BASE_16.charAt( (colour >> 4) & 0xF ) );
-                textColour.setChar( x, BASE_16.charAt( colour & 0xF ) );
+                backColour.set( x, buffer.readInt() );
+                textColour.set( x, buffer.readInt() );
             }
         }
 
-        palette.read( buffer );
         setChanged();
     }
 
@@ -85,14 +81,14 @@ public class NetworkedTerminal extends Terminal
         nbt.putBoolean( "term_cursorBlink", cursorBlink );
         nbt.putInt( "term_textColour", cursorColour );
         nbt.putInt( "term_bgColour", cursorBackgroundColour );
+
         for( int n = 0; n < height; n++ )
         {
-            nbt.putString( "term_text_" + n, text[n].toString() );
-            nbt.putString( "term_textColour_" + n, textColour[n].toString() );
-            nbt.putString( "term_textBgColour_" + n, backgroundColour[n].toString() );
+            nbt.putString( "term_text_" + n, new String(ArrayUtils.toPrimitive(((Buffer<Character>)text[n]).getArr())) );
+            nbt.putIntArray( "term_textColour_" + n, ArrayUtils.toPrimitive(((Buffer<Integer>)textColour[n]).getArr()) );
+            nbt.putIntArray( "term_textBgColour_" + n, ArrayUtils.toPrimitive(((Buffer<Integer>)backgroundColour[n]).getArr()) );
         }
 
-        palette.writeToNBT( nbt );
         return nbt;
     }
 
@@ -106,24 +102,23 @@ public class NetworkedTerminal extends Terminal
 
         for( int n = 0; n < height; n++ )
         {
-            text[n].fill( ' ' );
+            ((Buffer<Character>)text[n]).fill( ' ' );
             if( nbt.contains( "term_text_" + n ) )
             {
-                text[n].write( nbt.getString( "term_text_" + n ) );
+                ((Buffer<Character>)text[n]).write( ArrayUtils.toObject(nbt.getString( "term_text_" + n ).toCharArray()) );
             }
-            textColour[n].fill( BASE_16.charAt( cursorColour ) );
+            ((Buffer<Integer>)textColour[n]).fill( cursorColour );
             if( nbt.contains( "term_textColour_" + n ) )
             {
-                textColour[n].write( nbt.getString( "term_textColour_" + n ) );
+                ((Buffer<Integer>)textColour[n]).write( ArrayUtils.toObject(nbt.getIntArray( "term_textColour_" + n )) );
             }
-            backgroundColour[n].fill( BASE_16.charAt( cursorBackgroundColour ) );
+            ((Buffer<Integer>)backgroundColour[n]).fill( cursorBackgroundColour );
             if( nbt.contains( "term_textBgColour_" + n ) )
             {
-                backgroundColour[n].write( nbt.getString( "term_textBgColour_" + n ) );
+                ((Buffer<Integer>)backgroundColour[n]).write( ArrayUtils.toObject(nbt.getIntArray( "term_textBgColour_" + n )) );
             }
         }
 
-        palette.readFromNBT( nbt );
         setChanged();
     }
 }

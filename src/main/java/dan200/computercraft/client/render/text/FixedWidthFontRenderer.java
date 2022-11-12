@@ -11,9 +11,9 @@ import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
 import dan200.computercraft.client.FrameInfo;
 import dan200.computercraft.core.terminal.Terminal;
-import dan200.computercraft.core.terminal.TextBuffer;
+import dan200.computercraft.core.terminal.Buffer;
 import dan200.computercraft.shared.util.Colour;
-import dan200.computercraft.shared.util.Palette;
+import dan200.computercraft.shared.util.ColourUtils;
 import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nonnull;
@@ -57,14 +57,9 @@ public final class FixedWidthFontRenderer
         return (byte) (int) (c * 255);
     }
 
-    public static float toGreyscale( double[] rgb )
+    public static float toGreyscale( byte[] rgb )
     {
         return (float) ((rgb[0] + rgb[1] + rgb[2]) / 3);
-    }
-
-    public static int getColour( char c, Colour def )
-    {
-        return 15 - Terminal.getColour( c, def );
     }
 
     private static void drawChar( QuadEmitter emitter, float x, float y, int index, byte[] colour, int light )
@@ -89,57 +84,56 @@ public final class FixedWidthFontRenderer
         quad( emitter, x, y, x + width, y + height, z, colour, BACKGROUND_START, BACKGROUND_START, BACKGROUND_END, BACKGROUND_END, light );
     }
 
-    private static void drawQuad( QuadEmitter emitter, float x, float y, float width, float height, Palette palette, char colourIndex, int light )
+    private static void drawQuad( QuadEmitter emitter, float x, float y, float width, float height, int colourIndex, int light )
     {
-        byte[] colour = palette.getRenderColours( getColour( colourIndex, Colour.BLACK ) );
-        drawQuad( emitter, x, y, 0, width, height, colour, light );
+        drawQuad( emitter, x, y, 0, width, height, ColourUtils.intToBytes(colourIndex), light );
     }
 
     private static void drawBackground(
-        @Nonnull QuadEmitter emitter, float x, float y, @Nonnull TextBuffer backgroundColour, @Nonnull Palette palette,
+        @Nonnull QuadEmitter emitter, float x, float y, @Nonnull Buffer<Integer> backgroundColour,
         float leftMarginSize, float rightMarginSize, float height, int light
     )
     {
         if( leftMarginSize > 0 )
         {
-            drawQuad( emitter, x - leftMarginSize, y, leftMarginSize, height, palette, backgroundColour.charAt( 0 ), light );
+            drawQuad( emitter, x - leftMarginSize, y, leftMarginSize, height, backgroundColour.elementAt( 0 ), light );
         }
 
         if( rightMarginSize > 0 )
         {
-            drawQuad( emitter, x + backgroundColour.length() * FONT_WIDTH, y, rightMarginSize, height, palette, backgroundColour.charAt( backgroundColour.length() - 1 ), light );
+            drawQuad( emitter, x + backgroundColour.length() * FONT_WIDTH, y, rightMarginSize, height, backgroundColour.elementAt( backgroundColour.length() - 1 ), light );
         }
 
         // Batch together runs of identical background cells.
         int blockStart = 0;
-        char blockColour = '\0';
+        int blockColour = -1;
         for( int i = 0; i < backgroundColour.length(); i++ )
         {
-            char colourIndex = backgroundColour.charAt( i );
+            int colourIndex = backgroundColour.elementAt( i );
             if( colourIndex == blockColour ) continue;
 
-            if( blockColour != '\0' )
+            if( blockColour != -1 )
             {
-                drawQuad( emitter, x + blockStart * FONT_WIDTH, y, FONT_WIDTH * (i - blockStart), height, palette, blockColour, light );
+                drawQuad( emitter, x + blockStart * FONT_WIDTH, y, FONT_WIDTH * (i - blockStart), height, blockColour, light );
             }
 
             blockColour = colourIndex;
             blockStart = i;
         }
 
-        if( blockColour != '\0' )
+        if( blockColour != -1 )
         {
-            drawQuad( emitter, x + blockStart * FONT_WIDTH, y, FONT_WIDTH * (backgroundColour.length() - blockStart), height, palette, blockColour, light );
+            drawQuad( emitter, x + blockStart * FONT_WIDTH, y, FONT_WIDTH * (backgroundColour.length() - blockStart), height, blockColour, light );
         }
     }
 
-    public static void drawString( @Nonnull QuadEmitter emitter, float x, float y, @Nonnull TextBuffer text, @Nonnull TextBuffer textColour, @Nonnull Palette palette, int light )
+    public static void drawString( @Nonnull QuadEmitter emitter, float x, float y, @Nonnull Buffer<Character> text, @Nonnull Buffer<Integer> textColour, int light )
     {
         for( int i = 0; i < text.length(); i++ )
         {
-            byte[] colour = palette.getRenderColours( getColour( textColour.charAt( i ), Colour.BLACK ) );
+            byte[] colour = ColourUtils.intToBytes(textColour.elementAt( i ));
 
-            int index = text.charAt( i );
+            int index = text.elementAt( i );
             if( index > 255 ) index = '?';
             drawChar( emitter, x + i * FONT_WIDTH, y, index, colour, light );
         }
@@ -148,7 +142,6 @@ public final class FixedWidthFontRenderer
 
     public static void drawTerminalForeground( @Nonnull QuadEmitter emitter, float x, float y, @Nonnull Terminal terminal )
     {
-        Palette palette = terminal.getPalette();
         int height = terminal.getHeight();
 
         // The main text
@@ -157,7 +150,7 @@ public final class FixedWidthFontRenderer
             float rowY = y + FONT_HEIGHT * i;
             drawString(
                 emitter, x, rowY, terminal.getLine( i ), terminal.getTextColourLine( i ),
-                palette, FULL_BRIGHT_LIGHTMAP
+                FULL_BRIGHT_LIGHTMAP
             );
         }
     }
@@ -167,17 +160,16 @@ public final class FixedWidthFontRenderer
         float topMarginSize, float bottomMarginSize, float leftMarginSize, float rightMarginSize
     )
     {
-        Palette palette = terminal.getPalette();
         int height = terminal.getHeight();
 
         // Top and bottom margins
         drawBackground(
-            emitter, x, y - topMarginSize, terminal.getBackgroundColourLine( 0 ), palette,
+            emitter, x, y - topMarginSize, terminal.getBackgroundColourLine( 0 ),
             leftMarginSize, rightMarginSize, topMarginSize, FULL_BRIGHT_LIGHTMAP
         );
 
         drawBackground(
-            emitter, x, y + height * FONT_HEIGHT, terminal.getBackgroundColourLine( height - 1 ), palette,
+            emitter, x, y + height * FONT_HEIGHT, terminal.getBackgroundColourLine( height - 1 ),
             leftMarginSize, rightMarginSize, bottomMarginSize, FULL_BRIGHT_LIGHTMAP
         );
 
@@ -186,7 +178,7 @@ public final class FixedWidthFontRenderer
         {
             float rowY = y + FONT_HEIGHT * i;
             drawBackground(
-                emitter, x, rowY, terminal.getBackgroundColourLine( i ), palette,
+                emitter, x, rowY, terminal.getBackgroundColourLine( i ),
                 leftMarginSize, rightMarginSize, FONT_HEIGHT, FULL_BRIGHT_LIGHTMAP
             );
         }
@@ -205,7 +197,7 @@ public final class FixedWidthFontRenderer
     {
         if( isCursorVisible( terminal ) && FrameInfo.getGlobalCursorBlink() )
         {
-            byte[] colour = terminal.getPalette().getRenderColours( 15 - terminal.getTextColour() );
+            byte[] colour = ColourUtils.intToBytes(terminal.getTextColour());
             drawChar( emitter, x + terminal.getCursorX() * FONT_WIDTH, y + terminal.getCursorY() * FONT_HEIGHT, '_', colour, FULL_BRIGHT_LIGHTMAP );
         }
     }
@@ -250,7 +242,10 @@ public final class FixedWidthFontRenderer
     {
         var poseMatrix = c.poseMatrix();
         var consumer = c.consumer();
-        byte r = rgba[0], g = rgba[1], b = rgba[2], a = rgba[3];
+        byte r = rgba[0], g = rgba[1], b = rgba[2], a = -1;
+
+        if (rgba.length == 4)
+            a = rgba[3];
 
         consumer.vertex( poseMatrix, x1, y1, z ).color( r, g, b, a ).uv( u1, v1 ).uv2( light ).endVertex();
         consumer.vertex( poseMatrix, x1, y2, z ).color( r, g, b, a ).uv( u1, v2 ).uv2( light ).endVertex();

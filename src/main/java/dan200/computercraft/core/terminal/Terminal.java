@@ -5,17 +5,16 @@
  */
 package dan200.computercraft.core.terminal;
 
-import dan200.computercraft.shared.util.Colour;
-import dan200.computercraft.shared.util.Palette;
+import dan200.computercraft.shared.util.ColourUtils;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import org.apache.commons.lang3.ArrayUtils;
+
 import java.nio.ByteBuffer;
 
 public class Terminal
 {
-    protected static final String BASE_16 = "0123456789abcdef";
-
     protected int width;
     protected int height;
     protected final boolean colour;
@@ -23,14 +22,12 @@ public class Terminal
     protected int cursorX = 0;
     protected int cursorY = 0;
     protected boolean cursorBlink = false;
-    protected int cursorColour = 0;
-    protected int cursorBackgroundColour = 15;
+    protected int cursorColour = 0xFFFFFF;
+    protected int cursorBackgroundColour = 0x000000;
 
-    protected TextBuffer[] text;
-    protected TextBuffer[] textColour;
-    protected TextBuffer[] backgroundColour;
-
-    protected final Palette palette;
+    protected Object[] text;
+    protected Object[] textColour;
+    protected Object[] backgroundColour;
 
     private final @Nullable Runnable onChanged;
 
@@ -44,30 +41,28 @@ public class Terminal
         this.width = width;
         this.height = height;
         this.colour = colour;
-        palette = new Palette( colour );
         onChanged = changedCallback;
 
-        text = new TextBuffer[height];
-        textColour = new TextBuffer[height];
-        backgroundColour = new TextBuffer[height];
+        text = new Object[height];
+        textColour = new Object[height];
+        backgroundColour = new Object[height];
         for( int i = 0; i < this.height; i++ )
         {
-            text[i] = new TextBuffer( ' ', this.width );
-            textColour[i] = new TextBuffer( BASE_16.charAt( cursorColour ), this.width );
-            backgroundColour[i] = new TextBuffer( BASE_16.charAt( cursorBackgroundColour ), this.width );
+            text[i] = new Buffer<Character>( ' ', this.width );
+            textColour[i] = new Buffer<Integer>( cursorColour, this.width );
+            backgroundColour[i] = new Buffer<Integer>( cursorBackgroundColour, this.width );
         }
     }
 
     public synchronized void reset()
     {
-        cursorColour = 0;
-        cursorBackgroundColour = 15;
+        cursorColour = 0xFFFFFF;
+        cursorBackgroundColour = 0x0;
         cursorX = 0;
         cursorY = 0;
         cursorBlink = false;
         clear();
         setChanged();
-        palette.resetColours();
     }
 
     public int getWidth()
@@ -94,23 +89,23 @@ public class Terminal
 
         int oldHeight = this.height;
         int oldWidth = this.width;
-        TextBuffer[] oldText = text;
-        TextBuffer[] oldTextColour = textColour;
-        TextBuffer[] oldBackgroundColour = backgroundColour;
+        Object[] oldText = text;
+        Object[] oldTextColour = textColour;
+        Object[] oldBackgroundColour = backgroundColour;
 
         this.width = width;
         this.height = height;
 
-        text = new TextBuffer[height];
-        textColour = new TextBuffer[height];
-        backgroundColour = new TextBuffer[height];
+        text = new Object[height];
+        textColour = new Object[height];
+        backgroundColour = new Object[height];
         for( int i = 0; i < this.height; i++ )
         {
             if( i >= oldHeight )
             {
-                text[i] = new TextBuffer( ' ', this.width );
-                textColour[i] = new TextBuffer( BASE_16.charAt( cursorColour ), this.width );
-                backgroundColour[i] = new TextBuffer( BASE_16.charAt( cursorBackgroundColour ), this.width );
+                text[i] = new Buffer<Character>( ' ', this.width );
+                textColour[i] = new Buffer<Integer>( cursorColour, this.width );
+                backgroundColour[i] = new Buffer<Integer>( cursorBackgroundColour, this.width );
             }
             else if( this.width == oldWidth )
             {
@@ -120,12 +115,12 @@ public class Terminal
             }
             else
             {
-                text[i] = new TextBuffer( ' ', this.width );
-                textColour[i] = new TextBuffer( BASE_16.charAt( cursorColour ), this.width );
-                backgroundColour[i] = new TextBuffer( BASE_16.charAt( cursorBackgroundColour ), this.width );
-                text[i].write( oldText[i] );
-                textColour[i].write( oldTextColour[i] );
-                backgroundColour[i].write( oldBackgroundColour[i] );
+                text[i] = new Buffer<Character>( ' ', this.width );
+                textColour[i] = new Buffer<Integer>( cursorColour, this.width );
+                backgroundColour[i] = new Buffer<Integer>( cursorBackgroundColour, this.width );
+                ((Buffer<Character>)text[i]).write( (Buffer<Character>)oldText[i] );
+                ((Buffer<Integer>)textColour[i]).write( (Buffer<Integer>)oldTextColour[i] );
+                ((Buffer<Integer>)backgroundColour[i]).write( (Buffer<Integer>)oldBackgroundColour[i] );
             }
         }
         setChanged();
@@ -193,10 +188,40 @@ public class Terminal
         return cursorBackgroundColour;
     }
 
-    @Nonnull
-    public Palette getPalette()
+    private void writeToCharactersBuffer( Buffer<Character> buffer, ByteBuffer arr, int start )
     {
-        return palette;
+        int pos = start;
+        int bufferPos = arr.position();
+
+        start = Math.max( start, 0 );
+        int length = arr.remaining();
+        int end = Math.min( start + length, pos + length );
+        end = Math.min( end, buffer.length() );
+        for( int i = start; i < end; i++ )
+        {
+            buffer.set(i, (char) (arr.get( bufferPos + i - pos ) & 0xFF));
+        }
+    }
+
+    private void writeToIntegersBuffer( Buffer<Integer> buffer, ByteBuffer arr, int start )
+    {
+        int pos = start;
+        int bufferPos = arr.position();
+
+        start = Math.max( start, 0 );
+        int length = arr.remaining() / 3;
+        int end = Math.min( start + length, pos + length );
+        end = Math.min( end, buffer.length() );
+        for( int i = start; i < end; i++ )
+        {
+            byte r = arr.get( bufferPos + (i * 3) - pos );
+            byte g = arr.get( bufferPos + (i * 3) + 1 - pos );
+            byte b = arr.get( bufferPos + (i * 3) + 2 - pos );
+
+            int rgb = ColourUtils.bytesToInt(r, g, b);
+
+            buffer.set(i, rgb);
+        }
     }
 
     public synchronized void blit( ByteBuffer text, ByteBuffer textColour, ByteBuffer backgroundColour )
@@ -205,9 +230,9 @@ public class Terminal
         int y = cursorY;
         if( y >= 0 && y < height )
         {
-            this.text[y].write( text, x );
-            this.textColour[y].write( textColour, x );
-            this.backgroundColour[y].write( backgroundColour, x );
+            writeToCharactersBuffer( (Buffer<Character>) this.text[y], text, x );
+            writeToIntegersBuffer( (Buffer<Integer>) this.textColour[y], textColour, x );
+            writeToIntegersBuffer( (Buffer<Integer>) this.backgroundColour[y], backgroundColour, x );
             setChanged();
         }
     }
@@ -218,9 +243,9 @@ public class Terminal
         int y = cursorY;
         if( y >= 0 && y < height )
         {
-            this.text[y].write( text, x );
-            textColour[y].fill( BASE_16.charAt( cursorColour ), x, x + text.length() );
-            backgroundColour[y].fill( BASE_16.charAt( cursorBackgroundColour ), x, x + text.length() );
+            ((Buffer<Character>)this.text[y]).write( ArrayUtils.toObject(text.toCharArray()), x );
+            ((Buffer<Integer>)textColour[y]).fill( cursorColour, x, x + text.length() );
+            ((Buffer<Integer>)backgroundColour[y]).fill( cursorBackgroundColour, x, x + text.length() );
             setChanged();
         }
     }
@@ -229,9 +254,9 @@ public class Terminal
     {
         if( yDiff != 0 )
         {
-            TextBuffer[] newText = new TextBuffer[height];
-            TextBuffer[] newTextColour = new TextBuffer[height];
-            TextBuffer[] newBackgroundColour = new TextBuffer[height];
+            Object[] newText = new Object[height];
+            Object[] newTextColour = new Object[height];
+            Object[] newBackgroundColour = new Object[height];
             for( int y = 0; y < height; y++ )
             {
                 int oldY = y + yDiff;
@@ -243,9 +268,9 @@ public class Terminal
                 }
                 else
                 {
-                    newText[y] = new TextBuffer( ' ', width );
-                    newTextColour[y] = new TextBuffer( BASE_16.charAt( cursorColour ), width );
-                    newBackgroundColour[y] = new TextBuffer( BASE_16.charAt( cursorBackgroundColour ), width );
+                    newText[y] = new Buffer<Character>( ' ', width );
+                    newTextColour[y] = new Buffer<Integer>( cursorColour, width );
+                    newBackgroundColour[y] = new Buffer<Integer>( cursorBackgroundColour, width );
                 }
             }
             text = newText;
@@ -259,9 +284,9 @@ public class Terminal
     {
         for( int y = 0; y < height; y++ )
         {
-            text[y].fill( ' ' );
-            textColour[y].fill( BASE_16.charAt( cursorColour ) );
-            backgroundColour[y].fill( BASE_16.charAt( cursorBackgroundColour ) );
+            ((Buffer<Character>)text[y]).fill( ' ' );
+            ((Buffer<Integer>)textColour[y]).fill( cursorColour );
+            ((Buffer<Integer>)backgroundColour[y]).fill( cursorBackgroundColour );
         }
         setChanged();
     }
@@ -271,44 +296,44 @@ public class Terminal
         int y = cursorY;
         if( y >= 0 && y < height )
         {
-            text[y].fill( ' ' );
-            textColour[y].fill( BASE_16.charAt( cursorColour ) );
-            backgroundColour[y].fill( BASE_16.charAt( cursorBackgroundColour ) );
+            ((Buffer<Character>)text[y]).fill( ' ' );
+            ((Buffer<Integer>)textColour[y]).fill( cursorColour );
+            ((Buffer<Integer>)backgroundColour[y]).fill( cursorBackgroundColour );
             setChanged();
         }
     }
 
-    public synchronized TextBuffer getLine( int y )
+    public synchronized Buffer<Character> getLine( int y )
     {
         if( y >= 0 && y < height )
         {
-            return text[y];
+            return (Buffer<Character>) text[y];
         }
         return null;
     }
 
-    public synchronized void setLine( int y, String text, String textColour, String backgroundColour )
+    public synchronized void setLine( int y, String text, Integer[] textColour, Integer[] backgroundColour )
     {
-        this.text[y].write( text );
-        this.textColour[y].write( textColour );
-        this.backgroundColour[y].write( backgroundColour );
+        ((Buffer<Character>)this.text[y]).write( ArrayUtils.toObject(text.toCharArray()) );
+        ((Buffer<Integer>)this.textColour[y]).write( textColour );
+        ((Buffer<Integer>)this.backgroundColour[y]).write( backgroundColour );
         setChanged();
     }
 
-    public synchronized TextBuffer getTextColourLine( int y )
+    public synchronized Buffer<Integer> getTextColourLine( int y )
     {
         if( y >= 0 && y < height )
         {
-            return textColour[y];
+            return (Buffer<Integer>) textColour[y];
         }
         return null;
     }
 
-    public synchronized TextBuffer getBackgroundColourLine( int y )
+    public synchronized Buffer<Integer> getBackgroundColourLine( int y )
     {
         if( y >= 0 && y < height )
         {
-            return backgroundColour[y];
+            return (Buffer<Integer>) backgroundColour[y];
         }
         return null;
     }
@@ -316,13 +341,5 @@ public class Terminal
     public final void setChanged()
     {
         if( onChanged != null ) onChanged.run();
-    }
-
-    public static int getColour( char c, Colour def )
-    {
-        if( c >= '0' && c <= '9' ) return c - '0';
-        if( c >= 'a' && c <= 'f' ) return c - 'a' + 10;
-        if( c >= 'A' && c <= 'F' ) return c - 'A' + 10;
-        return 15 - def.ordinal();
     }
 }

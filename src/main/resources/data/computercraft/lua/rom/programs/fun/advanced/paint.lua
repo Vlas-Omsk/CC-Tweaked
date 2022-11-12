@@ -233,11 +233,6 @@ local function drawCanvasPixel(x, y)
     end
 end
 
-local color_hex_lookup = {}
-for i = 0, 15 do
-    color_hex_lookup[2 ^ i] = string.format("%x", i)
-end
-
 --[[
     Converts each colour in a single line of the canvas and draws it
     returns: nil
@@ -248,12 +243,12 @@ local function drawCanvasLine(y)
         local pixel = getCanvasPixel(x, y)
         if pixel then
             text = text .. " "
-            fg = fg .. "0"
-            bg = bg .. color_hex_lookup[pixel or canvasColour]
+            fg = fg .. colourUtils.intToString(colourUtils.bytesToInt(0, 0, 0))
+            bg = bg .. colourUtils.intToString(pixel or canvasColour)
         else
             text = text .. "\127"
-            fg = fg .. color_hex_lookup[colours.grey]
-            bg = bg .. color_hex_lookup[canvasColour]
+            fg = fg .. colourUtils.intToString(colours.grey)
+            bg = bg .. colourUtils.intToString(canvasColour)
         end
     end
 

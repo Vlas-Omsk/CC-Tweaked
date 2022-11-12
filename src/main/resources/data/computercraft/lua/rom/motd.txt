@@ -22,3 +22,4 @@ You can change the color of a disk by crafting or right clicking it with dye.
 You can print on a printed page again to get multiple colors.
 Holding the Ctrl and T keys terminates the running program.
 You can drag and drop files onto an open computer to upload them.
+Computer craft govno ebal now support rgb

@@ -138,67 +138,67 @@ local expect = dofile("rom/modules/main/cc/expect.lua").expect
 
 --- White: Written as `0` in paint files and @{term.blit}, has a default
 -- terminal colour of #F0F0F0.
-white = 0x1
+white = 0xF0F0F0
 
 --- Orange: Written as `1` in paint files and @{term.blit}, has a
 -- default terminal colour of #F2B233.
-orange = 0x2
+orange = 0xF2B233
 
 --- Magenta: Written as `2` in paint files and @{term.blit}, has a
 -- default terminal colour of #E57FD8.
-magenta = 0x4
+magenta = 0xE57FD8
 
 --- Light blue: Written as `3` in paint files and @{term.blit}, has a
 -- default terminal colour of #99B2F2.
-lightBlue = 0x8
+lightBlue = 0x99B2F2
 
 --- Yellow: Written as `4` in paint files and @{term.blit}, has a
 -- default terminal colour of #DEDE6C.
-yellow = 0x10
+yellow = 0xDEDE6C
 
 --- Lime: Written as `5` in paint files and @{term.blit}, has a default
 -- terminal colour of #7FCC19.
-lime = 0x20
+lime = 0x7FCC19
 
 --- Pink: Written as `6` in paint files and @{term.blit}, has a default
 -- terminal colour of #F2B2CC.
-pink = 0x40
+pink = 0xF2B2CC
 
 --- Gray: Written as `7` in paint files and @{term.blit}, has a default
 -- terminal colour of #4C4C4C.
-gray = 0x80
+gray = 0x4C4C4C
 
 --- Light gray: Written as `8` in paint files and @{term.blit}, has a
 -- default terminal colour of #999999.
-lightGray = 0x100
+lightGray = 0x999999
 
 --- Cyan: Written as `9` in paint files and @{term.blit}, has a default
 -- terminal colour of #4C99B2.
-cyan = 0x200
+cyan = 0x4C99B2
 
 --- Purple: Written as `a` in paint files and @{term.blit}, has a
 -- default terminal colour of #B266E5.
-purple = 0x400
+purple = 0xB266E5
 
 --- Blue: Written as `b` in paint files and @{term.blit}, has a default
 -- terminal colour of #3366CC.
-blue = 0x800
+blue = 0x3366CC
 
 --- Brown: Written as `c` in paint files and @{term.blit}, has a default
 -- terminal colour of #7F664C.
-brown = 0x1000
+brown = 0x7F664C
 
 --- Green: Written as `d` in paint files and @{term.blit}, has a default
 -- terminal colour of #57A64E.
-green = 0x2000
+green = 0x57A64E
 
 --- Red: Written as `e` in paint files and @{term.blit}, has a default
 -- terminal colour of #CC4C4C.
-red = 0x4000
+red = 0xCC4C4C
 
 --- Black: Written as `f` in paint files and @{term.blit}, has a default
 -- terminal colour of #111111.
-black = 0x8000
+black = 0x111111
 
 --- Combines a set of colors (or sets of colors) into a larger set. Useful for
 -- Bundled Cables.
@@ -282,10 +282,7 @@ function packRGB(r, g, b)
     expect(1, r, "number")
     expect(2, g, "number")
     expect(3, b, "number")
-    return
-        bit32.band(r * 255, 0xFF) * 2 ^ 16 +
-        bit32.band(g * 255, 0xFF) * 2 ^ 8 +
-        bit32.band(b * 255, 0xFF)
+    return colourUtils.bytesToInt(r, g, b)
 end
 
 --- Separate a hexadecimal RGB colour into its three constituent channels.
@@ -303,10 +300,7 @@ end
 -- @since 1.81.0
 function unpackRGB(rgb)
     expect(1, rgb, "number")
-    return
-        bit32.band(bit32.rshift(rgb, 16), 0xFF) / 255,
-        bit32.band(bit32.rshift(rgb, 8), 0xFF) / 255,
-        bit32.band(rgb, 0xFF) / 255
+    return colourUtils.intToBytes(rgb)
 end
 
 --- Either calls @{colors.packRGB} or @{colors.unpackRGB}, depending on how many
@@ -341,21 +335,6 @@ function rgb8(r, g, b)
     end
 end
 
--- Colour to hex lookup table for toBlit
-local color_hex_lookup = {}
-for i = 0, 15 do
-    color_hex_lookup[2 ^ i] = string.format("%x", i)
-end
-
---- Converts the given color to a paint/blit hex character (0-9a-f).
---
--- This is equivalent to converting floor(log_2(color)) to hexadecimal.
---
--- @tparam number color The color to convert.
--- @treturn string The blit hex code of the color.
--- @since 1.94.0
-function toBlit(color)
-    expect(1, color, "number")
-    return color_hex_lookup[color] or
-        string.format("%x", math.floor(math.log(color) / math.log(2)))
+function isRgbSupported()
+    return true
 end

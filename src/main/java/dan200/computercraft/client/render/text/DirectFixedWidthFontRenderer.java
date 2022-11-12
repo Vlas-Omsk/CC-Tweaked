@@ -11,9 +11,10 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import dan200.computercraft.client.render.RenderTypes;
 import dan200.computercraft.core.terminal.Terminal;
-import dan200.computercraft.core.terminal.TextBuffer;
+import dan200.computercraft.core.terminal.Buffer;
 import dan200.computercraft.shared.util.Colour;
-import dan200.computercraft.shared.util.Palette;
+import dan200.computercraft.shared.util.ColourUtils;
+
 import org.lwjgl.system.MemoryUtil;
 
 import javax.annotation.Nonnull;
@@ -62,57 +63,57 @@ public final class DirectFixedWidthFontRenderer
         );
     }
 
-    private static void drawQuad( QuadEmitter emitter, float x, float y, float width, float height, Palette palette, char colourIndex )
+    private static void drawQuad( QuadEmitter emitter, float x, float y, float width, float height, int colourIndex )
     {
-        byte[] colour = palette.getRenderColours( getColour( colourIndex, Colour.BLACK ) );
+        byte[] colour = ColourUtils.intToBytes(colourIndex);
         quad( emitter, x, y, x + width, y + height, 0f, colour, BACKGROUND_START, BACKGROUND_START, BACKGROUND_END, BACKGROUND_END );
     }
 
     private static void drawBackground(
-        @Nonnull QuadEmitter emitter, float x, float y, @Nonnull TextBuffer backgroundColour, @Nonnull Palette palette,
+        @Nonnull QuadEmitter emitter, float x, float y, @Nonnull Buffer<Integer> backgroundColour,
         float leftMarginSize, float rightMarginSize, float height
     )
     {
         if( leftMarginSize > 0 )
         {
-            drawQuad( emitter, x - leftMarginSize, y, leftMarginSize, height, palette, backgroundColour.charAt( 0 ) );
+            drawQuad( emitter, x - leftMarginSize, y, leftMarginSize, height, backgroundColour.elementAt( 0 ) );
         }
 
         if( rightMarginSize > 0 )
         {
-            drawQuad( emitter, x + backgroundColour.length() * FONT_WIDTH, y, rightMarginSize, height, palette, backgroundColour.charAt( backgroundColour.length() - 1 ) );
+            drawQuad( emitter, x + backgroundColour.length() * FONT_WIDTH, y, rightMarginSize, height, backgroundColour.elementAt( backgroundColour.length() - 1 ) );
         }
 
         // Batch together runs of identical background cells.
         int blockStart = 0;
-        char blockColour = '\0';
+        int blockColour = -1;
         for( int i = 0; i < backgroundColour.length(); i++ )
         {
-            char colourIndex = backgroundColour.charAt( i );
+            int colourIndex = backgroundColour.elementAt( i );
             if( colourIndex == blockColour ) continue;
 
-            if( blockColour != '\0' )
+            if( blockColour != -1 )
             {
-                drawQuad( emitter, x + blockStart * FONT_WIDTH, y, FONT_WIDTH * (i - blockStart), height, palette, blockColour );
+                drawQuad( emitter, x + blockStart * FONT_WIDTH, y, FONT_WIDTH * (i - blockStart), height, blockColour );
             }
 
             blockColour = colourIndex;
             blockStart = i;
         }
 
-        if( blockColour != '\0' )
+        if( blockColour != -1 )
         {
-            drawQuad( emitter, x + blockStart * FONT_WIDTH, y, FONT_WIDTH * (backgroundColour.length() - blockStart), height, palette, blockColour );
+            drawQuad( emitter, x + blockStart * FONT_WIDTH, y, FONT_WIDTH * (backgroundColour.length() - blockStart), height, blockColour );
         }
     }
 
-    public static void drawString( @Nonnull QuadEmitter emitter, float x, float y, @Nonnull TextBuffer text, @Nonnull TextBuffer textColour, @Nonnull Palette palette )
+    public static void drawString( @Nonnull QuadEmitter emitter, float x, float y, @Nonnull Buffer<Character> text, @Nonnull Buffer<Integer> textColour )
     {
         for( int i = 0; i < text.length(); i++ )
         {
-            byte[] colour = palette.getRenderColours( getColour( textColour.charAt( i ), Colour.BLACK ) );
+            byte[] colour = ColourUtils.intToBytes(textColour.elementAt( i ));
 
-            int index = text.charAt( i );
+            int index = text.elementAt( i );
             if( index > 255 ) index = '?';
             drawChar( emitter, x + i * FONT_WIDTH, y, index, colour );
         }
@@ -121,7 +122,6 @@ public final class DirectFixedWidthFontRenderer
 
     public static void drawTerminalForeground( @Nonnull QuadEmitter emitter, float x, float y, @Nonnull Terminal terminal )
     {
-        Palette palette = terminal.getPalette();
         int height = terminal.getHeight();
 
         // The main text
@@ -129,8 +129,7 @@ public final class DirectFixedWidthFontRenderer
         {
             float rowY = y + FONT_HEIGHT * i;
             drawString(
-                emitter, x, rowY, terminal.getLine( i ), terminal.getTextColourLine( i ),
-                palette
+                emitter, x, rowY, terminal.getLine( i ), terminal.getTextColourLine( i )
             );
         }
     }
@@ -140,17 +139,16 @@ public final class DirectFixedWidthFontRenderer
         float topMarginSize, float bottomMarginSize, float leftMarginSize, float rightMarginSize
     )
     {
-        Palette palette = terminal.getPalette();
         int height = terminal.getHeight();
 
         // Top and bottom margins
         drawBackground(
-            emitter, x, y - topMarginSize, terminal.getBackgroundColourLine( 0 ), palette,
+            emitter, x, y - topMarginSize, terminal.getBackgroundColourLine( 0 ),
             leftMarginSize, rightMarginSize, topMarginSize
         );
 
         drawBackground(
-            emitter, x, y + height * FONT_HEIGHT, terminal.getBackgroundColourLine( height - 1 ), palette,
+            emitter, x, y + height * FONT_HEIGHT, terminal.getBackgroundColourLine( height - 1 ),
             leftMarginSize, rightMarginSize, bottomMarginSize
         );
 
@@ -159,7 +157,7 @@ public final class DirectFixedWidthFontRenderer
         {
             float rowY = y + FONT_HEIGHT * i;
             drawBackground(
-                emitter, x, rowY, terminal.getBackgroundColourLine( i ), palette,
+                emitter, x, rowY, terminal.getBackgroundColourLine( i ),
                 leftMarginSize, rightMarginSize, FONT_HEIGHT
             );
         }
@@ -169,7 +167,7 @@ public final class DirectFixedWidthFontRenderer
     {
         if( isCursorVisible( terminal ) )
         {
-            byte[] colour = terminal.getPalette().getRenderColours( 15 - terminal.getTextColour() );
+            byte[] colour = ColourUtils.intToBytes(terminal.getTextColour());
             drawChar( emitter, x + terminal.getCursorX() * FONT_WIDTH, y + terminal.getCursorY() * FONT_HEIGHT, '_', colour );
         }
     }
@@ -224,7 +222,8 @@ public final class DirectFixedWidthFontRenderer
         // Require the pointer to be aligned to a 32-bit boundary.
         if( (addr & 3) != 0 ) throw new IllegalStateException( "Memory is not aligned" );
         // Also assert the length of the array. This appears to help elide bounds checks on the array in some circumstances.
-        if( rgba.length != 4 ) throw new IllegalStateException();
+        // if rgb then rgba.length == 3 !!!
+        if( rgba.length != 3 && rgba.length != 4 ) throw new IllegalStateException();
 
         memPutFloat( addr + 0, x1 );
         memPutFloat( addr + 4, y1 );

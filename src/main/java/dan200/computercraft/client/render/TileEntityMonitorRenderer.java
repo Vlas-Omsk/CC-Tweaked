@@ -144,99 +144,104 @@ public class TileEntityMonitorRenderer implements BlockEntityRenderer<TileMonito
         int width = terminal.getWidth(), height = terminal.getHeight();
         int pixelWidth = width * FONT_WIDTH, pixelHeight = height * FONT_HEIGHT;
 
-        MonitorRenderer renderType = MonitorRenderer.current();
+        // FIXME: I dont know how to fix TBO renderer
+        MonitorRenderer renderType = MonitorRenderer.VBO; // MonitorRenderer.current();
         boolean redraw = monitor.pollTerminalChanged();
         if( monitor.createBuffer( renderType ) ) redraw = true;
 
         switch( renderType )
         {
             case TBO:
-            {
-                if( redraw )
-                {
-                    var terminalBuffer = getBuffer( width * height * 3 );
-                    MonitorTextureBufferShader.setTerminalData( terminalBuffer, terminal );
-                    DirectBuffers.setBufferData( GL31.GL_TEXTURE_BUFFER, monitor.tboBuffer, terminalBuffer, GL20.GL_STATIC_DRAW );
-
-                    var uniformBuffer = getBuffer( MonitorTextureBufferShader.UNIFORM_SIZE );
-                    MonitorTextureBufferShader.setUniformData( uniformBuffer, terminal );
-                    DirectBuffers.setBufferData( GL31.GL_UNIFORM_BUFFER, monitor.tboUniform, uniformBuffer, GL20.GL_STATIC_DRAW );
-                }
-
-                // Nobody knows what they're doing!
-                int active = GlStateManager._getActiveTexture();
-                RenderSystem.activeTexture( MonitorTextureBufferShader.TEXTURE_INDEX );
-                GL11.glBindTexture( GL31.GL_TEXTURE_BUFFER, monitor.tboTexture );
-                RenderSystem.activeTexture( active );
-
-                MonitorTextureBufferShader shader = RenderTypes.getMonitorTextureBufferShader();
-                shader.setupUniform( monitor.tboUniform );
-
-                BufferBuilder buffer = Tesselator.getInstance().getBuilder();
-                buffer.begin( RenderTypes.MONITOR_TBO.mode(), RenderTypes.MONITOR_TBO.format() );
-                tboVertex( buffer, matrix, -xMargin, -yMargin );
-                tboVertex( buffer, matrix, -xMargin, pixelHeight + yMargin );
-                tboVertex( buffer, matrix, pixelWidth + xMargin, -yMargin );
-                tboVertex( buffer, matrix, pixelWidth + xMargin, pixelHeight + yMargin );
-                RenderTypes.MONITOR_TBO.end( buffer, 0, 0, 0 );
-
+                renderTBO(matrix, monitor, xMargin, yMargin, terminal, width, height, pixelWidth, pixelHeight, redraw);
                 break;
-            }
 
             case VBO:
-            {
-                var backgroundBuffer = monitor.backgroundBuffer;
-                var foregroundBuffer = monitor.foregroundBuffer;
-                if( redraw )
-                {
-                    int size = DirectFixedWidthFontRenderer.getVertexCount( terminal );
-
-                    // In an ideal world we could upload these both into one buffer. However, we can't render VBOs with
-                    // and starting and ending offset, and so need to use two buffers instead.
-
-                    renderToBuffer( backgroundBuffer, size, sink ->
-                        DirectFixedWidthFontRenderer.drawTerminalBackground( sink, 0, 0, terminal, yMargin, yMargin, xMargin, xMargin ) );
-
-                    renderToBuffer( foregroundBuffer, size, sink -> {
-                        DirectFixedWidthFontRenderer.drawTerminalForeground( sink, 0, 0, terminal );
-                        // If the cursor is visible, we append it to the end of our buffer. When rendering, we can either
-                        // render n or n+1 quads and so toggle the cursor on and off.
-                        DirectFixedWidthFontRenderer.drawCursor( sink, 0, 0, terminal );
-                    } );
-                }
-
-                // Our VBO doesn't transform its vertices with the provided pose stack, which means that the inverse view
-                // rotation matrix gives entirely wrong numbers for fog distances. We just set it to the identity which
-                // gives a good enough approximation.
-                Matrix3f oldInverseRotation = RenderSystem.getInverseViewRotationMatrix();
-                RenderSystem.setInverseViewRotationMatrix( IDENTITY_NORMAL );
-
-                RenderTypes.TERMINAL.setupRenderState();
-
-                // Render background geometry
-                backgroundBuffer.drawWithShader( matrix, RenderSystem.getProjectionMatrix(), RenderTypes.getTerminalShader() );
-
-                // Render foreground geometry with glPolygonOffset enabled.
-                GL11.glPolygonOffset( -1.0f, -10.0f );
-                GL11.glEnable( GL11.GL_POLYGON_OFFSET_FILL );
-                foregroundBuffer.drawWithShader(
-                    matrix, RenderSystem.getProjectionMatrix(), RenderTypes.getTerminalShader(),
-                    // As mentioned in the above comment, render the extra cursor quad if it is visible this frame. Each
-                    // // quad has an index count of 6.
-                    FixedWidthFontRenderer.isCursorVisible( terminal ) && FrameInfo.getGlobalCursorBlink()
-                        ? foregroundBuffer.getIndexCount() + 6 : foregroundBuffer.getIndexCount()
-                );
-
-                // Clear state
-                GL11.glPolygonOffset( 0.0f, -0.0f );
-                GL11.glDisable( GL11.GL_POLYGON_OFFSET_FILL );
-                RenderTypes.TERMINAL.clearRenderState();
-
-                RenderSystem.setInverseViewRotationMatrix( oldInverseRotation );
-
+                renderVBO(matrix, monitor, xMargin, yMargin, terminal, redraw);
                 break;
-            }
         }
+    }
+
+    private static void renderTBO(Matrix4f matrix, ClientMonitor monitor, float xMargin, float yMargin, Terminal terminal, int width, int height, int pixelWidth, int pixelHeight, boolean redraw)
+    {
+        if( redraw )
+        {
+            var terminalBuffer = getBuffer( width * height * 7 );
+            MonitorTextureBufferShader.setTerminalData( terminalBuffer, terminal );
+            DirectBuffers.setBufferData( GL31.GL_TEXTURE_BUFFER, monitor.tboBuffer, terminalBuffer, GL20.GL_STATIC_DRAW );
+
+            var uniformBuffer = getBuffer( MonitorTextureBufferShader.UNIFORM_SIZE );
+            MonitorTextureBufferShader.setUniformData( uniformBuffer, terminal );
+            DirectBuffers.setBufferData( GL31.GL_UNIFORM_BUFFER, monitor.tboUniform, uniformBuffer, GL20.GL_STATIC_DRAW );
+        }
+
+        // Nobody knows what they're doing!
+        int active = GlStateManager._getActiveTexture();
+        RenderSystem.activeTexture( MonitorTextureBufferShader.TEXTURE_INDEX );
+        GL11.glBindTexture( GL31.GL_TEXTURE_BUFFER, monitor.tboTexture );
+        RenderSystem.activeTexture( active );
+
+        MonitorTextureBufferShader shader = RenderTypes.getMonitorTextureBufferShader();
+        shader.setupUniform( monitor.tboUniform );
+
+        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+        buffer.begin( RenderTypes.MONITOR_TBO.mode(), RenderTypes.MONITOR_TBO.format() );
+        tboVertex( buffer, matrix, -xMargin, -yMargin );
+        tboVertex( buffer, matrix, -xMargin, pixelHeight + yMargin );
+        tboVertex( buffer, matrix, pixelWidth + xMargin, -yMargin );
+        tboVertex( buffer, matrix, pixelWidth + xMargin, pixelHeight + yMargin );
+        RenderTypes.MONITOR_TBO.end( buffer, 0, 0, 0 );
+    }
+
+    private static void renderVBO(Matrix4f matrix, ClientMonitor monitor, float xMargin, float yMargin, Terminal terminal, boolean redraw)
+    {
+        var backgroundBuffer = monitor.backgroundBuffer;
+        var foregroundBuffer = monitor.foregroundBuffer;
+        if( redraw )
+        {
+            int size = DirectFixedWidthFontRenderer.getVertexCount( terminal );
+
+            // In an ideal world we could upload these both into one buffer. However, we can't render VBOs with
+            // and starting and ending offset, and so need to use two buffers instead.
+
+            renderToBuffer( backgroundBuffer, size, sink ->
+                DirectFixedWidthFontRenderer.drawTerminalBackground( sink, 0, 0, terminal, yMargin, yMargin, xMargin, xMargin ) );
+
+            renderToBuffer( foregroundBuffer, size, sink -> {
+                DirectFixedWidthFontRenderer.drawTerminalForeground( sink, 0, 0, terminal );
+                // If the cursor is visible, we append it to the end of our buffer. When rendering, we can either
+                // render n or n+1 quads and so toggle the cursor on and off.
+                DirectFixedWidthFontRenderer.drawCursor( sink, 0, 0, terminal );
+            } );
+        }
+
+        // Our VBO doesn't transform its vertices with the provided pose stack, which means that the inverse view
+        // rotation matrix gives entirely wrong numbers for fog distances. We just set it to the identity which
+        // gives a good enough approximation.
+        Matrix3f oldInverseRotation = RenderSystem.getInverseViewRotationMatrix();
+        RenderSystem.setInverseViewRotationMatrix( IDENTITY_NORMAL );
+
+        RenderTypes.TERMINAL.setupRenderState();
+
+        // Render background geometry
+        backgroundBuffer.drawWithShader( matrix, RenderSystem.getProjectionMatrix(), RenderTypes.getTerminalShader() );
+
+        // Render foreground geometry with glPolygonOffset enabled.
+        GL11.glPolygonOffset( -1.0f, -10.0f );
+        GL11.glEnable( GL11.GL_POLYGON_OFFSET_FILL );
+        foregroundBuffer.drawWithShader(
+            matrix, RenderSystem.getProjectionMatrix(), RenderTypes.getTerminalShader(),
+            // As mentioned in the above comment, render the extra cursor quad if it is visible this frame. Each
+            // // quad has an index count of 6.
+            FixedWidthFontRenderer.isCursorVisible( terminal ) && FrameInfo.getGlobalCursorBlink()
+                ? foregroundBuffer.getIndexCount() + 6 : foregroundBuffer.getIndexCount()
+        );
+
+        // Clear state
+        GL11.glPolygonOffset( 0.0f, -0.0f );
+        GL11.glDisable( GL11.GL_POLYGON_OFFSET_FILL );
+        RenderTypes.TERMINAL.clearRenderState();
+
+        RenderSystem.setInverseViewRotationMatrix( oldInverseRotation );
     }
 
     private static void renderToBuffer( DirectVertexBuffer vbo, int size, Consumer<DirectFixedWidthFontRenderer.QuadEmitter> draw )

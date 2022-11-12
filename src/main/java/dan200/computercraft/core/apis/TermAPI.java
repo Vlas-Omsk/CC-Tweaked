@@ -10,7 +10,7 @@ import dan200.computercraft.api.lua.ILuaAPI;
 import dan200.computercraft.api.lua.LuaException;
 import dan200.computercraft.api.lua.LuaFunction;
 import dan200.computercraft.core.terminal.Terminal;
-import dan200.computercraft.shared.util.Colour;
+import dan200.computercraft.shared.util.ColourUtils;
 
 import javax.annotation.Nonnull;
 
@@ -50,9 +50,8 @@ public class TermAPI extends TermMethods implements ILuaAPI
     @LuaFunction( { "nativePaletteColour", "nativePaletteColor" } )
     public final Object[] nativePaletteColour( int colour ) throws LuaException
     {
-        int actualColour = 15 - parseColour( colour );
-        Colour c = Colour.fromInt( actualColour );
-        return new Object[] { c.getR(), c.getG(), c.getB() };
+        byte[] rgb = ColourUtils.intToBytes(colour);
+        return new Object[] { rgb[0], rgb[1], rgb[2] };
     }
 
     @Nonnull

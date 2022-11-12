@@ -41,6 +41,8 @@ import net.minecraftforge.network.NetworkHooks;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import static dan200.computercraft.shared.Capabilities.CAPABILITY_PERIPHERAL;
 import static net.minecraftforge.items.CapabilityItemHandler.ITEM_HANDLER_CAPABILITY;
 
@@ -356,10 +358,10 @@ public final class TilePrinter extends TileGeneric implements DefaultSidedInvent
             {
                 pageTitle = ItemPrintout.getTitle( paperStack );
                 String[] text = ItemPrintout.getText( paperStack );
-                String[] textColour = ItemPrintout.getColours( paperStack );
+                int[][] textColour = ItemPrintout.getColours( paperStack );
                 for( int y = 0; y < page.getHeight(); y++ )
                 {
-                    page.setLine( y, text[y], textColour[y], "" );
+                    page.setLine( y, text[y], ArrayUtils.toObject(textColour[y]), new Integer[] { } );
                 }
             }
             else
@@ -391,11 +393,11 @@ public final class TilePrinter extends TileGeneric implements DefaultSidedInvent
     {
         int height = page.getHeight();
         String[] lines = new String[height];
-        String[] colours = new String[height];
+        int[][] colours = new int[height][];
         for( int i = 0; i < height; i++ )
         {
-            lines[i] = page.getLine( i ).toString();
-            colours[i] = page.getTextColourLine( i ).toString();
+            lines[i] = new String( ArrayUtils.toPrimitive(page.getLine( i ).getArr()) );
+            colours[i] = ArrayUtils.toPrimitive( page.getTextColourLine( i ).getArr() );
         }
 
         ItemStack stack = ItemPrintout.createSingleFromTitleAndText( pageTitle, lines, colours );

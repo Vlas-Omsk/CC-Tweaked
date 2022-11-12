@@ -9,9 +9,7 @@ import dan200.computercraft.api.lua.IArguments;
 import dan200.computercraft.api.lua.LuaException;
 import dan200.computercraft.api.lua.LuaFunction;
 import dan200.computercraft.core.terminal.Terminal;
-import dan200.computercraft.shared.util.Palette;
 import dan200.computercraft.shared.util.StringUtil;
-import org.apache.commons.lang3.ArrayUtils;
 
 import javax.annotation.Nonnull;
 import java.nio.ByteBuffer;
@@ -23,17 +21,6 @@ import java.nio.ByteBuffer;
  */
 public abstract class TermMethods
 {
-    private static int getHighestBit( int group )
-    {
-        int bit = 0;
-        while( group > 0 )
-        {
-            group >>= 1;
-            bit++;
-        }
-        return bit;
-    }
-
     @Nonnull
     public abstract Terminal getTerminal() throws LuaException;
 
@@ -190,16 +177,15 @@ public abstract class TermMethods
     /**
      * Set the colour that new text will be written as.
      *
-     * @param colourArg The new text colour.
+     * @param colour The new text colour.
      * @throws LuaException (hidden) If the terminal cannot be found.
      * @cc.see colors For a list of colour constants.
      * @cc.since 1.45
      * @cc.changed 1.80pr1 Standard computers can now use all 16 colors, being changed to grayscale on screen.
      */
     @LuaFunction( { "setTextColour", "setTextColor" } )
-    public final void setTextColour( int colourArg ) throws LuaException
+    public final void setTextColour( int colour ) throws LuaException
     {
-        int colour = parseColour( colourArg );
         Terminal terminal = getTerminal();
         synchronized( terminal )
         {
@@ -226,16 +212,15 @@ public abstract class TermMethods
      * Set the current background colour. This is used when {@link #write writing text} and {@link #clear clearing} the
      * terminal.
      *
-     * @param colourArg The new background colour.
+     * @param colour The new background colour.
      * @throws LuaException (hidden) If the terminal cannot be found.
      * @cc.see colors For a list of colour constants.
      * @cc.since 1.45
      * @cc.changed 1.80pr1 Standard computers can now use all 16 colors, being changed to grayscale on screen.
      */
     @LuaFunction( { "setBackgroundColour", "setBackgroundColor" } )
-    public final void setBackgroundColour( int colourArg ) throws LuaException
+    public final void setBackgroundColour( int colour ) throws LuaException
     {
-        int colour = parseColour( colourArg );
         Terminal terminal = getTerminal();
         synchronized( terminal )
         {
@@ -284,7 +269,7 @@ public abstract class TermMethods
     @LuaFunction
     public final void blit( ByteBuffer text, ByteBuffer textColour, ByteBuffer backgroundColour ) throws LuaException
     {
-        if( textColour.remaining() != text.remaining() || backgroundColour.remaining() != text.remaining() )
+        if( textColour.remaining() / 3 != text.remaining() || backgroundColour.remaining() / 3 != text.remaining() )
         {
             throw new LuaException( "Arguments must be the same length" );
         }
@@ -297,97 +282,8 @@ public abstract class TermMethods
         }
     }
 
-    /**
-     * Set the palette for a specific colour.
-     * <p>
-     * ComputerCraft's palette system allows you to change how a specific colour should be displayed. For instance, you
-     * can make @{colors.red} <em>more red</em> by setting its palette to #FF0000. This does now allow you to draw more
-     * colours - you are still limited to 16 on the screen at one time - but you can change <em>which</em> colours are
-     * used.
-     *
-     * @param args The new palette values.
-     * @throws LuaException (hidden) If the terminal cannot be found.
-     * @cc.tparam [1] number index The colour whose palette should be changed.
-     * @cc.tparam number colour A 24-bit integer representing the RGB value of the colour. For instance the integer
-     * `0xFF0000` corresponds to the colour #FF0000.
-     * @cc.tparam [2] number index The colour whose palette should be changed.
-     * @cc.tparam number r The intensity of the red channel, between 0 and 1.
-     * @cc.tparam number g The intensity of the green channel, between 0 and 1.
-     * @cc.tparam number b The intensity of the blue channel, between 0 and 1.
-     * @cc.usage Change the @{colors.red|red colour} from the default #CC4C4C to #FF0000.
-     * <pre>{@code
-     * term.setPaletteColour(colors.red, 0xFF0000)
-     * term.setTextColour(colors.red)
-     * print("Hello, world!")
-     * }</pre>
-     * @cc.usage As above, but specifying each colour channel separately.
-     * <pre>{@code
-     * term.setPaletteColour(colors.red, 1, 0, 0)
-     * term.setTextColour(colors.red)
-     * print("Hello, world!")
-     * }</pre>
-     * @cc.see colors.unpackRGB To convert from the 24-bit format to three separate channels.
-     * @cc.see colors.packRGB To convert from three separate channels to the 24-bit format.
-     * @cc.since 1.80pr1
-     */
-    @LuaFunction( { "setPaletteColour", "setPaletteColor" } )
-    public final void setPaletteColour( IArguments args ) throws LuaException
-    {
-        int colour = 15 - parseColour( args.getInt( 0 ) );
-        if( args.count() == 2 )
-        {
-            int hex = args.getInt( 1 );
-            double[] rgb = Palette.decodeRGB8( hex );
-            setColour( getTerminal(), colour, rgb[0], rgb[1], rgb[2] );
-        }
-        else
-        {
-            double r = args.getFiniteDouble( 1 );
-            double g = args.getFiniteDouble( 2 );
-            double b = args.getFiniteDouble( 3 );
-            setColour( getTerminal(), colour, r, g, b );
-        }
-    }
-
-    /**
-     * Get the current palette for a specific colour.
-     *
-     * @param colourArg The colour whose palette should be fetched.
-     * @return The resulting colour.
-     * @throws LuaException (hidden) If the terminal cannot be found.
-     * @cc.treturn number The red channel, will be between 0 and 1.
-     * @cc.treturn number The green channel, will be between 0 and 1.
-     * @cc.treturn number The blue channel, will be between 0 and 1.
-     * @cc.since 1.80pr1
-     */
-    @LuaFunction( { "getPaletteColour", "getPaletteColor" } )
-    public final Object[] getPaletteColour( int colourArg ) throws LuaException
-    {
-        int colour = 15 - parseColour( colourArg );
-        Terminal terminal = getTerminal();
-        synchronized( terminal )
-        {
-            return ArrayUtils.toObject( terminal.getPalette().getColour( colour ) );
-        }
-    }
-
-    public static int parseColour( int colour ) throws LuaException
-    {
-        if( colour <= 0 ) throw new LuaException( "Colour out of range" );
-        colour = getHighestBit( colour ) - 1;
-        if( colour < 0 || colour > 15 ) throw new LuaException( "Colour out of range" );
-        return colour;
-    }
-
-
     public static int encodeColour( int colour )
     {
         return 1 << colour;
-    }
-
-    public static void setColour( Terminal terminal, int colour, double r, double g, double b )
-    {
-        terminal.getPalette().setColour( colour, r, g, b );
-        terminal.setChanged();
     }
 }
