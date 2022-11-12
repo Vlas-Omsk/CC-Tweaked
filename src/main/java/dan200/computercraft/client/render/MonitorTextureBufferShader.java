@@ -88,15 +88,15 @@ public class MonitorTextureBufferShader extends ShaderInstance
             Buffer<Integer> textColour = terminal.getTextColourLine( y ), background = terminal.getBackgroundColourLine( y );
             for( int x = 0; x < width; x++ )
             {
-                buffer.put( pos, (byte) (text.elementAt( x ) & 0xFF) );
-                byte[] color = ColourUtils.intToBytes(textColour.elementAt( x ));
-                buffer.put( pos + 1,  color[0]);
-                buffer.put( pos + 2,  color[1]);
-                buffer.put( pos + 3,  color[2]);
-                color = ColourUtils.intToBytes(background.elementAt( x ));
-                buffer.put( pos + 4,  color[0]);
-                buffer.put( pos + 5,  color[1]);
-                buffer.put( pos + 6,  color[2]);
+                buffer.put( pos, (byte) (text.get( x ) & 0xFF) );
+                byte[] color = ColourUtils.intToBytes( textColour.get( x ) );
+                buffer.put( pos + 1, color[0] );
+                buffer.put( pos + 2, color[1] );
+                buffer.put( pos + 3, color[2] );
+                color = ColourUtils.intToBytes( background.get( x ) );
+                buffer.put( pos + 4, color[0] );
+                buffer.put( pos + 5, color[1] );
+                buffer.put( pos + 6, color[2] );
                 pos += 7;
             }
         }
@@ -115,8 +115,10 @@ public class MonitorTextureBufferShader extends ShaderInstance
             .putInt( pos + 12, showCursor ? terminal.getCursorY() : -2 )
             .putInt( pos + 16, terminal.getTextColour() );
 
-        if (pos != UNIFORM_SIZE)
-            throw new InvalidValueException("pos != UNIFORM_SIZE");
+        if ( pos != UNIFORM_SIZE )
+        {
+            throw new InvalidValueException( "pos != UNIFORM_SIZE" );
+        }
 
         buffer.limit( UNIFORM_SIZE );
     }

@@ -6,12 +6,10 @@
 package dan200.computercraft.core.terminal;
 
 import dan200.computercraft.shared.util.ColourUtils;
-
-import javax.annotation.Nullable;
-
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.nio.ByteBuffer;
+import javax.annotation.Nullable;
 
 public class Terminal
 {
@@ -199,7 +197,7 @@ public class Terminal
         end = Math.min( end, buffer.length() );
         for( int i = start; i < end; i++ )
         {
-            buffer.set(i, (char) (arr.get( bufferPos + i - pos ) & 0xFF));
+            buffer.set( i, (char) (arr.get( bufferPos + i - pos ) & 0xFF) );
         }
     }
 
@@ -218,9 +216,9 @@ public class Terminal
             byte g = arr.get( bufferPos + (i * 3) + 1 - pos );
             byte b = arr.get( bufferPos + (i * 3) + 2 - pos );
 
-            int rgb = ColourUtils.bytesToInt(r, g, b);
+            int rgb = ColourUtils.bytesToInt( r, g, b );
 
-            buffer.set(i, rgb);
+            buffer.set( i, rgb );
         }
     }
 
@@ -243,7 +241,7 @@ public class Terminal
         int y = cursorY;
         if( y >= 0 && y < height )
         {
-            ((Buffer<Character>)this.text[y]).write( ArrayUtils.toObject(text.toCharArray()), x );
+            ((Buffer<Character>)this.text[y]).write( ArrayUtils.toObject( text.toCharArray() ), x );
             ((Buffer<Integer>)textColour[y]).fill( cursorColour, x, x + text.length() );
             ((Buffer<Integer>)backgroundColour[y]).fill( cursorBackgroundColour, x, x + text.length() );
             setChanged();
@@ -314,7 +312,7 @@ public class Terminal
 
     public synchronized void setLine( int y, String text, Integer[] textColour, Integer[] backgroundColour )
     {
-        ((Buffer<Character>)this.text[y]).write( ArrayUtils.toObject(text.toCharArray()) );
+        ((Buffer<Character>)this.text[y]).write( ArrayUtils.toObject( text.toCharArray() ) );
         ((Buffer<Integer>)this.textColour[y]).write( textColour );
         ((Buffer<Integer>)this.backgroundColour[y]).write( backgroundColour );
         setChanged();

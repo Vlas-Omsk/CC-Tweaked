@@ -50,7 +50,7 @@ public class TermAPI extends TermMethods implements ILuaAPI
     @LuaFunction( { "nativePaletteColour", "nativePaletteColor" } )
     public final Object[] nativePaletteColour( int colour ) throws LuaException
     {
-        byte[] rgb = ColourUtils.intToBytes(colour);
+        byte[] rgb = ColourUtils.intToBytes( colour );
         return new Object[] { rgb[0], rgb[1], rgb[2] };
     }
 

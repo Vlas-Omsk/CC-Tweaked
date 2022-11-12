@@ -37,11 +37,10 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 import net.minecraftforge.items.wrapper.SidedInvWrapper;
 import net.minecraftforge.network.NetworkHooks;
+import org.apache.commons.lang3.ArrayUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
-import org.apache.commons.lang3.ArrayUtils;
 
 import static dan200.computercraft.shared.Capabilities.CAPABILITY_PERIPHERAL;
 import static net.minecraftforge.items.CapabilityItemHandler.ITEM_HANDLER_CAPABILITY;
@@ -361,7 +360,7 @@ public final class TilePrinter extends TileGeneric implements DefaultSidedInvent
                 int[][] textColour = ItemPrintout.getColours( paperStack );
                 for( int y = 0; y < page.getHeight(); y++ )
                 {
-                    page.setLine( y, text[y], ArrayUtils.toObject(textColour[y]), new Integer[] { } );
+                    page.setLine( y, text[y], ArrayUtils.toObject( textColour[y] ), new Integer[] { } );
                 }
             }
             else
@@ -396,7 +395,7 @@ public final class TilePrinter extends TileGeneric implements DefaultSidedInvent
         int[][] colours = new int[height][];
         for( int i = 0; i < height; i++ )
         {
-            lines[i] = new String( ArrayUtils.toPrimitive(page.getLine( i ).getArr()) );
+            lines[i] = new String( ArrayUtils.toPrimitive( page.getLine( i ).getArr() ) );
             colours[i] = ArrayUtils.toPrimitive( page.getTextColourLine( i ).getArr() );
         }
 

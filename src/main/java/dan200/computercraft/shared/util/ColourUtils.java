@@ -48,21 +48,21 @@ public final class ColourUtils
         return null;
     }
 
-    public static byte[] intToBytes(int rgb)
+    public static byte[] intToBytes( int rgb )
     {
-        byte b = (byte)(rgb);
-        byte g = (byte)(rgb>>8);
-        byte r = (byte)(rgb>>16);
+        byte b = (byte)rgb;
+        byte g = (byte)(rgb >> 8);
+        byte r = (byte)(rgb >> 16);
 
         return new byte[] { r, g, b };
     }
 
-    public static int bytesToInt(byte[] rgb)
+    public static int bytesToInt( byte[] rgb )
     {
-        return bytesToInt(rgb[0], rgb[1], rgb[2]);
+        return bytesToInt( rgb[0], rgb[1], rgb[2] );
     }
 
-    public static int bytesToInt(byte r, byte g, byte b)
+    public static int bytesToInt( byte r, byte g, byte b )
     {
         int rgb = r & 0xff;
         rgb = (rgb << 8) + (g & 0xff);

@@ -31,7 +31,7 @@ public class Buffer<T>
     {
         // FIXME
         // return (T[]) arr;
-        throw new NotImplementedException("FIXME");
+        throw new NotImplementedException( "FIXME" );
     }
 
     public void write( T[] arr )
@@ -56,7 +56,7 @@ public class Buffer<T>
         int end = Math.min( buffer.length(), this.arr.length );
         for( int i = 0; i < end; i++ )
         {
-            this.arr[i] = buffer.elementAt( i );
+            this.arr[i] = buffer.get( i );
         }
     }
 
@@ -75,7 +75,7 @@ public class Buffer<T>
         }
     }
 
-    public T elementAt( int i )
+    public T get( int i )
     {
         return (T) arr[i];
     }

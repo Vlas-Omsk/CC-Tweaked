@@ -152,16 +152,16 @@ public class TileEntityMonitorRenderer implements BlockEntityRenderer<TileMonito
         switch( renderType )
         {
             case TBO:
-                renderTBO(matrix, monitor, xMargin, yMargin, terminal, width, height, pixelWidth, pixelHeight, redraw);
+                renderTBO( matrix, monitor, xMargin, yMargin, terminal, width, height, pixelWidth, pixelHeight, redraw );
                 break;
 
             case VBO:
-                renderVBO(matrix, monitor, xMargin, yMargin, terminal, redraw);
+                renderVBO( matrix, monitor, xMargin, yMargin, terminal, redraw );
                 break;
         }
     }
 
-    private static void renderTBO(Matrix4f matrix, ClientMonitor monitor, float xMargin, float yMargin, Terminal terminal, int width, int height, int pixelWidth, int pixelHeight, boolean redraw)
+    private static void renderTBO( Matrix4f matrix, ClientMonitor monitor, float xMargin, float yMargin, Terminal terminal, int width, int height, int pixelWidth, int pixelHeight, boolean redraw )
     {
         if( redraw )
         {
@@ -192,7 +192,7 @@ public class TileEntityMonitorRenderer implements BlockEntityRenderer<TileMonito
         RenderTypes.MONITOR_TBO.end( buffer, 0, 0, 0 );
     }
 
-    private static void renderVBO(Matrix4f matrix, ClientMonitor monitor, float xMargin, float yMargin, Terminal terminal, boolean redraw)
+    private static void renderVBO( Matrix4f matrix, ClientMonitor monitor, float xMargin, float yMargin, Terminal terminal, boolean redraw )
     {
         var backgroundBuffer = monitor.backgroundBuffer;
         var foregroundBuffer = monitor.foregroundBuffer;

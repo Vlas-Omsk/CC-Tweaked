@@ -15,7 +15,6 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.lwjgl.glfw.GLFW;
 
@@ -40,11 +39,11 @@ public class GuiPrintout extends AbstractContainerScreen<ContainerHeldItem>
 
         String[] text = ItemPrintout.getText( container.getStack() );
         this.text = new Object[text.length];
-        for( int i = 0; i < this.text.length; i++ ) this.text[i] = new Buffer<Character>( ArrayUtils.toObject(text[i].toCharArray()) );
+        for( int i = 0; i < this.text.length; i++ ) this.text[i] = new Buffer<Character>( ArrayUtils.toObject( text[i].toCharArray() ) );
 
         int[][] colours = ItemPrintout.getColours( container.getStack() );
         this.colours = new Object[colours.length];
-        for( int i = 0; i < this.colours.length; i++ ) this.colours[i] = new Buffer<Integer>( ArrayUtils.toObject(colours[i]) );
+        for( int i = 0; i < this.colours.length; i++ ) this.colours[i] = new Buffer<Integer>( ArrayUtils.toObject( colours[i] ) );
 
         page = 0;
         pages = Math.max( this.text.length / ItemPrintout.LINES_PER_PAGE, 1 );

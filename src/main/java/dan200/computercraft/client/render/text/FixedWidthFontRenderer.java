@@ -86,7 +86,7 @@ public final class FixedWidthFontRenderer
 
     private static void drawQuad( QuadEmitter emitter, float x, float y, float width, float height, int colourIndex, int light )
     {
-        drawQuad( emitter, x, y, 0, width, height, ColourUtils.intToBytes(colourIndex), light );
+        drawQuad( emitter, x, y, 0, width, height, ColourUtils.intToBytes( colourIndex ), light );
     }
 
     private static void drawBackground(
@@ -96,12 +96,12 @@ public final class FixedWidthFontRenderer
     {
         if( leftMarginSize > 0 )
         {
-            drawQuad( emitter, x - leftMarginSize, y, leftMarginSize, height, backgroundColour.elementAt( 0 ), light );
+            drawQuad( emitter, x - leftMarginSize, y, leftMarginSize, height, backgroundColour.get( 0 ), light );
         }
 
         if( rightMarginSize > 0 )
         {
-            drawQuad( emitter, x + backgroundColour.length() * FONT_WIDTH, y, rightMarginSize, height, backgroundColour.elementAt( backgroundColour.length() - 1 ), light );
+            drawQuad( emitter, x + backgroundColour.length() * FONT_WIDTH, y, rightMarginSize, height, backgroundColour.get( backgroundColour.length() - 1 ), light );
         }
 
         // Batch together runs of identical background cells.
@@ -109,7 +109,7 @@ public final class FixedWidthFontRenderer
         int blockColour = -1;
         for( int i = 0; i < backgroundColour.length(); i++ )
         {
-            int colourIndex = backgroundColour.elementAt( i );
+            int colourIndex = backgroundColour.get( i );
             if( colourIndex == blockColour ) continue;
 
             if( blockColour != -1 )
@@ -131,9 +131,9 @@ public final class FixedWidthFontRenderer
     {
         for( int i = 0; i < text.length(); i++ )
         {
-            byte[] colour = ColourUtils.intToBytes(textColour.elementAt( i ));
+            byte[] colour = ColourUtils.intToBytes( textColour.get( i ) );
 
-            int index = text.elementAt( i );
+            int index = text.get( i );
             if( index > 255 ) index = '?';
             drawChar( emitter, x + i * FONT_WIDTH, y, index, colour, light );
         }
@@ -197,7 +197,7 @@ public final class FixedWidthFontRenderer
     {
         if( isCursorVisible( terminal ) && FrameInfo.getGlobalCursorBlink() )
         {
-            byte[] colour = ColourUtils.intToBytes(terminal.getTextColour());
+            byte[] colour = ColourUtils.intToBytes( terminal.getTextColour() );
             drawChar( emitter, x + terminal.getCursorX() * FONT_WIDTH, y + terminal.getCursorY() * FONT_HEIGHT, '_', colour, FULL_BRIGHT_LIGHTMAP );
         }
     }
@@ -244,8 +244,10 @@ public final class FixedWidthFontRenderer
         var consumer = c.consumer();
         byte r = rgba[0], g = rgba[1], b = rgba[2], a = -1;
 
-        if (rgba.length == 4)
+        if ( rgba.length == 4 )
+        {
             a = rgba[3];
+        }
 
         consumer.vertex( poseMatrix, x1, y1, z ).color( r, g, b, a ).uv( u1, v1 ).uv2( light ).endVertex();
         consumer.vertex( poseMatrix, x1, y2, z ).color( r, g, b, a ).uv( u1, v2 ).uv2( light ).endVertex();

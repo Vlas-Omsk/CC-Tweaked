@@ -50,8 +50,8 @@ public class TerminalStateTest
         NetworkedTerminal terminal = new NetworkedTerminal( 10, 5, true );
         for( int y = 0; y < terminal.getHeight(); y++ )
         {
-            Buffer buffer = terminal.getLine( y );
-            for( int x = 0; x < buffer.length(); x++ ) buffer.setChar( x, (char) (random.nextInt( 26 ) + 65) );
+            Buffer<Character> buffer = terminal.getLine( y );
+            for( int x = 0; x < buffer.length(); x++ ) buffer.set( x, (char) (random.nextInt( 26 ) + 65) );
         }
 
         return terminal;
