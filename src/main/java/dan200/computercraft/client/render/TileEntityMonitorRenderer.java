@@ -46,12 +46,6 @@ import static dan200.computercraft.client.render.text.FixedWidthFontRenderer.FON
 
 public class TileEntityMonitorRenderer implements BlockEntityRenderer<TileMonitor>
 {
-    /**
-     * {@link TileMonitor#RENDER_MARGIN}, but a tiny bit of additional padding to ensure that there is no space between
-     * the monitor frame and contents.
-     */
-    private static final float MARGIN = (float) (TileMonitor.RENDER_MARGIN * 1.1);
-
     private static final Matrix3f IDENTITY_NORMAL = Util.make( new Matrix3f(), Matrix3f::setIdentity );
 
     private static ByteBuffer backingBuffer;
@@ -92,6 +86,7 @@ public class TileEntityMonitorRenderer implements BlockEntityRenderer<TileMonito
 
         // Setup initial transform
         transform.pushPose();
+
         transform.translate(
             originPos.getX() - monitorPos.getX() + 0.5,
             originPos.getY() - monitorPos.getY() + 0.5,
@@ -100,9 +95,10 @@ public class TileEntityMonitorRenderer implements BlockEntityRenderer<TileMonito
 
         transform.mulPose( Vector3f.YN.rotationDegrees( yaw ) );
         transform.mulPose( Vector3f.XP.rotationDegrees( pitch ) );
+
         transform.translate(
             -0.5 + TileMonitor.RENDER_BORDER + TileMonitor.RENDER_MARGIN,
-            origin.getHeight() - 0.5 - (TileMonitor.RENDER_BORDER + TileMonitor.RENDER_MARGIN) + 0,
+            origin.getHeight() - 0.5 - (TileMonitor.RENDER_BORDER + TileMonitor.RENDER_MARGIN),
             0.5
         );
         double xSize = origin.getWidth() - 2.0 * (TileMonitor.RENDER_MARGIN + TileMonitor.RENDER_BORDER);
@@ -122,7 +118,7 @@ public class TileEntityMonitorRenderer implements BlockEntityRenderer<TileMonito
 
             Matrix4f matrix = transform.last().pose();
 
-            renderTerminal( matrix, originTerminal, (float) (MARGIN / xScale), (float) (MARGIN / yScale) );
+            renderTerminal( matrix, originTerminal, (float) (TileMonitor.RENDER_MARGIN / xScale), (float) (TileMonitor.RENDER_MARGIN / yScale) );
 
             transform.popPose();
         }
@@ -130,8 +126,8 @@ public class TileEntityMonitorRenderer implements BlockEntityRenderer<TileMonito
         {
             FixedWidthFontRenderer.drawEmptyTerminal(
                 FixedWidthFontRenderer.toVertexConsumer( transform, bufferSource.getBuffer( RenderTypes.TERMINAL ) ),
-                -MARGIN, MARGIN,
-                (float) (xSize + 2 * MARGIN), (float) -(ySize + MARGIN * 2)
+                -(float)TileMonitor.RENDER_MARGIN, (float)TileMonitor.RENDER_MARGIN,
+                (float) (xSize + TileMonitor.RENDER_MARGIN * 2), (float) -(ySize + TileMonitor.RENDER_MARGIN * 2)
             );
         }
 

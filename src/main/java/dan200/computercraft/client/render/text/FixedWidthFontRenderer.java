@@ -45,21 +45,11 @@ public final class FixedWidthFontRenderer
     static final float BACKGROUND_START = (WIDTH - 6.0f) / WIDTH;
     static final float BACKGROUND_END = (WIDTH - 4.0f) / WIDTH;
 
-    private static final byte[] BLACK = new byte[] { byteColour( Colour.BLACK.getR() ), byteColour( Colour.BLACK.getR() ), byteColour( Colour.BLACK.getR() ), (byte) 255 };
+    private static final byte[] BLACK = ColourUtils.intToBytes( Colour.BLACK.getHex() );
     private static final float Z_OFFSET = 1e-3f;
 
     private FixedWidthFontRenderer()
     {
-    }
-
-    private static byte byteColour( float c )
-    {
-        return (byte) (int) (c * 255);
-    }
-
-    public static float toGreyscale( byte[] rgb )
-    {
-        return (float) ((rgb[0] + rgb[1] + rgb[2]) / 3);
     }
 
     private static void drawChar( QuadEmitter emitter, float x, float y, int index, byte[] colour, int light )

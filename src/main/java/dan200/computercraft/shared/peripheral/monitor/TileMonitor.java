@@ -40,8 +40,10 @@ import static dan200.computercraft.shared.Capabilities.CAPABILITY_PERIPHERAL;
 
 public class TileMonitor extends TileGeneric
 {
-    public static final double RENDER_BORDER = 2.0 / 16.0;
-    public static final double RENDER_MARGIN = 0.5 / 16.0;
+    // I still don’t understand where the indentation comes from when changing the position,
+    // but it’s better than RENDER_MARGIN * 1.1 in the original
+    public static final double RENDER_BORDER = 2.0 / 16.0 - 5.0 / 2048.0;
+    public static final double RENDER_MARGIN = 0;
     public static final double RENDER_PIXEL_SCALE = 1.0 / 64.0;
 
     private static final String NBT_X = "XIndex";
