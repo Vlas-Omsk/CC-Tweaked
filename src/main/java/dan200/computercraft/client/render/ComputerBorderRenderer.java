@@ -26,7 +26,7 @@ public class ComputerBorderRenderer
     /**
      * The margin between the terminal and its border.
      */
-    public static final int MARGIN = 2;
+    public static final int MARGIN = 0;
 
     /**
      * The width of the terminal border.
