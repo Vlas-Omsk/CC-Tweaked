@@ -11,15 +11,15 @@ local function drawPixelInternal(xPos, yPos)
     term.write(" ")
 end
 
-local tColourLookup = {}
-for n = 1, 16 do
-    tColourLookup[string.byte("0123456789abcdef", n, n)] = 2 ^ (n - 1)
-end
-
-local function parseLine(tImageArg, sLine)
+local function parseLine(tImageArg, sLine, isRgb)
     local tLine = {}
     for x = 1, sLine:len() do
-        tLine[x] = tColourLookup[string.byte(sLine, x, x)] or 0
+        if isRgb == true then
+            local nX = ((x - 1) * 3) + 1;
+            tLine[x] = colourUtils.stringToInt(sLine:sub(nX, nX + 2))
+        else
+            tLine[x] = colors.legacyCharacterToColor(sLine:sub(x, x)) or 0
+        end
     end
     table.insert(tImageArg, tLine)
 end
@@ -49,11 +49,11 @@ end
 -- @treturn table The parsed image data, suitable for use with
 -- @{paintutils.drawImage}.
 -- @since 1.80pr1
-function parseImage(image)
+function parseImage(image, isRgb)
     expect(1, image, "string")
     local tImage = {}
     for sLine in (image .. "\n"):gmatch("(.-)\n") do
-        parseLine(tImage, sLine)
+        parseLine(tImage, sLine, isRgb)
     end
     return tImage
 end
@@ -77,7 +77,13 @@ function loadImage(path)
         local file = io.open(path, "r")
         local sContent = file:read("*a")
         file:close()
-        return parseImage(sContent)
+        local version = sContent:sub(1, 1) - 0xB0;
+
+        if version == 0 then
+            return parseImage(sContent:sub(2), true)
+        else
+            return parseImage(sContent, false)
+        end
     end
     return nil
 end

@@ -20,7 +20,7 @@ public class ColourUtilsAPI implements ILuaAPI
     @Override
     public String[] getNames()
     {
-        return new String[] { "colourUtils", "colorUtils" };
+        return new String[] { "colourutils", "colorutils" };
     }
 
     @LuaFunction
@@ -32,6 +32,11 @@ public class ColourUtilsAPI implements ILuaAPI
     @LuaFunction
     public final int stringToInt( ByteBuffer rgb )
     {
+        if (rgb.remaining() < 3)
+        {
+            throw new LuaException( "The string must have a length greater than or equal to 3." );
+        }
+
         return ColourUtils.bytesToInt( rgb.get( 0 ), rgb.get( 1 ), rgb.get( 2 ) );
     }
 

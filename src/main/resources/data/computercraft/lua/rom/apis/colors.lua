@@ -200,6 +200,25 @@ red = 0xCC4C4C
 -- terminal colour of #111111.
 black = 0x111111
 
+legacy = {
+    [1] = white,
+    [2] = orange,
+    [4] = magenta,
+    [8] = lightBlue,
+    [16] = yellow,
+    [32] = lime,
+    [64] = pink,
+    [128] = gray,
+    [256] = lightGray,
+    [512] = cyan,
+    [1024] = purple,
+    [2048] = blue,
+    [4096] = brown,
+    [8192] = green,
+    [16384] = red,
+    [32768] = black
+}
+
 --- Combines a set of colors (or sets of colors) into a larger set. Useful for
 -- Bundled Cables.
 --
@@ -337,4 +356,15 @@ end
 
 function isRgbSupported()
     return true
+end
+
+function legacyCharacterToColor(c)
+    local i
+
+    if c >= '0' and c <= '9' then i = c - '0'
+    elseif c >= 'a' and c <= 'f' then i = c - 'a' + 10
+    elseif c >= 'A' and c <= 'F' then i = c - 'A' + 10
+    else error('The character must be in the range [0-9a-fA-F]') end
+
+    return legacy[2 ^ i]
 end
