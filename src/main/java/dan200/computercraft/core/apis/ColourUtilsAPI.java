@@ -6,6 +6,7 @@
 package dan200.computercraft.core.apis;
 
 import dan200.computercraft.api.lua.ILuaAPI;
+import dan200.computercraft.api.lua.LuaException;
 import dan200.computercraft.api.lua.LuaFunction;
 import dan200.computercraft.shared.util.ColourUtils;
 
@@ -30,9 +31,9 @@ public class ColourUtilsAPI implements ILuaAPI
     }
 
     @LuaFunction
-    public final int stringToInt( ByteBuffer rgb )
+    public final int stringToInt( ByteBuffer rgb ) throws LuaException
     {
-        if (rgb.remaining() < 3)
+        if ( rgb.remaining() < 3 )
         {
             throw new LuaException( "The string must have a length greater than or equal to 3." );
         }
