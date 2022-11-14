@@ -87,7 +87,7 @@ function create(parent, nX, nY, nWidth, nHeight, bStartVisible)
     end
 
     local function createEmptyColorLine(color, width)
-        local rgb = colourUtils.intToString(color)
+        local rgb = colourutils.intToString(color)
 
         return string_rep(rgb, width)
     end

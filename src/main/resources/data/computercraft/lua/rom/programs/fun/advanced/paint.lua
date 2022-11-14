@@ -243,12 +243,12 @@ local function drawCanvasLine(y)
         local pixel = getCanvasPixel(x, y)
         if pixel then
             text = text .. " "
-            fg = fg .. colourUtils.intToString(colourUtils.bytesToInt(0, 0, 0))
-            bg = bg .. colourUtils.intToString(pixel or canvasColour)
+            fg = fg .. colourutils.intToString(0x0)
+            bg = bg .. colourutils.intToString(pixel or canvasColour)
         else
             text = text .. "\127"
-            fg = fg .. colourUtils.intToString(colours.grey)
-            bg = bg .. colourUtils.intToString(canvasColour)
+            fg = fg .. colourutils.intToString(colours.grey)
+            bg = bg .. colourutils.intToString(canvasColour)
         end
     end
 

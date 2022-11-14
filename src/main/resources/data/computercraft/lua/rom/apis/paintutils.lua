@@ -13,10 +13,10 @@ end
 
 local function parseLine(tImageArg, sLine, isRgb)
     local tLine = {}
-    for x = 1, sLine:len() do
+    local step = isRgb == true and 3 or 1
+    for x = 1, sLine:len(), step do
         if isRgb == true then
-            local nX = ((x - 1) * 3) + 1;
-            tLine[x] = colourUtils.stringToInt(sLine:sub(nX, nX + 2))
+            tLine[((x - 1) / 3) + 1] = colourutils.stringToInt(sLine:sub(x, x + 2))
         else
             tLine[x] = colors.legacyCharacterToColor(sLine:sub(x, x)) or 0
         end
@@ -77,7 +77,7 @@ function loadImage(path)
         local file = io.open(path, "r")
         local sContent = file:read("*a")
         file:close()
-        local version = sContent:sub(1, 1) - 0xB0;
+        local version = string.byte(sContent:sub(1, 1)) - 0xB0
 
         if version == 0 then
             return parseImage(sContent:sub(2), true)

@@ -301,7 +301,7 @@ function packRGB(r, g, b)
     expect(1, r, "number")
     expect(2, g, "number")
     expect(3, b, "number")
-    return colourUtils.bytesToInt(r, g, b)
+    return colourutils.bytesToInt(r, g, b)
 end
 
 --- Separate a hexadecimal RGB colour into its three constituent channels.
@@ -319,7 +319,7 @@ end
 -- @since 1.81.0
 function unpackRGB(rgb)
     expect(1, rgb, "number")
-    return colourUtils.intToBytes(rgb)
+    return colourutils.intToBytes(rgb)
 end
 
 --- Either calls @{colors.packRGB} or @{colors.unpackRGB}, depending on how many
@@ -359,12 +359,14 @@ function isRgbSupported()
 end
 
 function legacyCharacterToColor(c)
-    local i
+    expect(1, c, "string")
 
-    if c >= '0' and c <= '9' then i = c - '0'
-    elseif c >= 'a' and c <= 'f' then i = c - 'a' + 10
-    elseif c >= 'A' and c <= 'F' then i = c - 'A' + 10
-    else error('The character must be in the range [0-9a-fA-F]') end
+    c = string.byte(c)
 
-    return legacy[2 ^ i]
+    if c >= string.byte('0') and c <= string.byte('9') then c = c - string.byte('0')
+    elseif c >= string.byte('a') and c <= string.byte('f') then c = c - string.byte('a') + 10
+    elseif c >= string.byte('A') and c <= string.byte('F') then c = c - string.byte('A') + 10
+    else return nil end
+
+    return legacy[2 ^ c]
 end

@@ -38,7 +38,8 @@ public class ColourUtilsAPI implements ILuaAPI
             throw new LuaException( "The string must have a length greater than or equal to 3." );
         }
 
-        return ColourUtils.bytesToInt( rgb.get( 0 ), rgb.get( 1 ), rgb.get( 2 ) );
+        var pos = rgb.position();
+        return ColourUtils.bytesToInt( rgb.get( pos ), rgb.get( pos + 1 ), rgb.get( pos + 2 ) );
     }
 
     @LuaFunction
