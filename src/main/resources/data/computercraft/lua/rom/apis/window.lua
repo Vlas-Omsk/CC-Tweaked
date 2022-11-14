@@ -82,16 +82,12 @@ function create(parent, nX, nY, nWidth, nHeight, bStartVisible)
     end
 
     local sEmptySpaceLine
-    local function createEmptyLines(nWidth)
-        sEmptySpaceLine = string_rep(" ", nWidth)
+    local function createEmptyLines(width)
+        sEmptySpaceLine = string_rep(" ", width)
     end
 
     local function createEmptyColorLine(color, width)
         local rgb = colourUtils.intToString(color)
-
-        if width == nil then
-            width = nWidth
-        end
 
         return string_rep(rgb, width)
     end
@@ -108,8 +104,8 @@ function create(parent, nX, nY, nWidth, nHeight, bStartVisible)
     local tLines = {}
     do
         local sEmptyText = sEmptySpaceLine
-        local sEmptyTextColor = createEmptyColorLine(nTextColor)
-        local sEmptyBackgroundColor = createEmptyColorLine(nBackgroundColor)
+        local sEmptyTextColor = createEmptyColorLine(nTextColor, nWidth)
+        local sEmptyBackgroundColor = createEmptyColorLine(nBackgroundColor, nWidth)
         for y = 1, nHeight do
             tLines[y] = {
                 text = sEmptyText,
@@ -248,8 +244,8 @@ function create(parent, nX, nY, nWidth, nHeight, bStartVisible)
 
     function window.clear()
         local sEmptyText = sEmptySpaceLine
-        local sEmptyTextColor = createEmptyColorLine(nTextColor)
-        local sEmptyBackgroundColor = createEmptyColorLine(nBackgroundColor)
+        local sEmptyTextColor = createEmptyColorLine(nTextColor, nWidth)
+        local sEmptyBackgroundColor = createEmptyColorLine(nBackgroundColor, nWidth)
         for y = 1, nHeight do
             tLines[y] = {
                 text = sEmptyText,
@@ -267,8 +263,8 @@ function create(parent, nX, nY, nWidth, nHeight, bStartVisible)
     function window.clearLine()
         if nCursorY >= 1 and nCursorY <= nHeight then
             local sEmptyText = sEmptySpaceLine
-            local sEmptyTextColor = createEmptyColorLine(nTextColor)
-            local sEmptyBackgroundColor = createEmptyColorLine(nBackgroundColor)
+            local sEmptyTextColor = createEmptyColorLine(nTextColor, nWidth)
+            local sEmptyBackgroundColor = createEmptyColorLine(nBackgroundColor, nWidth)
             tLines[nCursorY] = {
                 text = sEmptyText,
                 textColor = sEmptyTextColor,
@@ -349,8 +345,8 @@ function create(parent, nX, nY, nWidth, nHeight, bStartVisible)
         if n ~= 0 then
             local tNewLines = {}
             local sEmptyText = sEmptySpaceLine
-            local sEmptyTextColor = createEmptyColorLine(nTextColor)
-            local sEmptyBackgroundColor = createEmptyColorLine(nBackgroundColor)
+            local sEmptyTextColor = createEmptyColorLine(nTextColor, nWidth)
+            local sEmptyBackgroundColor = createEmptyColorLine(nBackgroundColor, nWidth)
             for newY = 1, nHeight do
                 local y = newY + n
                 if y >= 1 and y <= nHeight then
@@ -494,8 +490,8 @@ function create(parent, nX, nY, nWidth, nHeight, bStartVisible)
             local tNewLines = {}
             createEmptyLines(new_width)
             local sEmptyText = sEmptySpaceLine
-            local sEmptyTextColor = createEmptyColorLine(nTextColor)
-            local sEmptyBackgroundColor = createEmptyColorLine(nBackgroundColor)
+            local sEmptyTextColor = createEmptyColorLine(nTextColor, new_width)
+            local sEmptyBackgroundColor = createEmptyColorLine(nBackgroundColor, new_width)
             for y = 1, new_height do
                 if y > nHeight then
                     tNewLines[y] = {

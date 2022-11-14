@@ -195,9 +195,10 @@ public class Terminal
         int length = arr.remaining();
         int end = Math.min( start + length, pos + length );
         end = Math.min( end, buffer.length() );
+
         for( int i = start; i < end; i++ )
         {
-            buffer.set( i, (char) (arr.get( bufferPos + i - pos ) & 0xFF) );
+            buffer.set( i, (char) (arr.get( bufferPos + (i - pos) ) & 0xFF) );
         }
     }
 
@@ -210,11 +211,12 @@ public class Terminal
         int length = arr.remaining() / 3;
         int end = Math.min( start + length, pos + length );
         end = Math.min( end, buffer.length() );
+
         for( int i = start; i < end; i++ )
         {
-            byte r = arr.get( bufferPos + (i * 3) - pos );
-            byte g = arr.get( bufferPos + (i * 3) + 1 - pos );
-            byte b = arr.get( bufferPos + (i * 3) + 2 - pos );
+            byte r = arr.get( bufferPos + ((i - pos) * 3) );
+            byte g = arr.get( bufferPos + ((i - pos) * 3) + 1 );
+            byte b = arr.get( bufferPos + ((i - pos) * 3) + 2 );
 
             int rgb = ColourUtils.bytesToInt( r, g, b );
 
