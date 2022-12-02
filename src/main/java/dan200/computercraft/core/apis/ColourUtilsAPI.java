@@ -12,6 +12,11 @@ import dan200.computercraft.shared.util.ColourUtils;
 
 import java.nio.ByteBuffer;
 
+/**
+ * Colors converters.
+ *
+ * @cc.module colorutils
+ */
 public class ColourUtilsAPI implements ILuaAPI
 {
     public ColourUtilsAPI( IAPIEnvironment environment )
@@ -24,12 +29,27 @@ public class ColourUtilsAPI implements ILuaAPI
         return new String[] { "colourutils", "colorutils" };
     }
 
+    /**
+     * Converts RGB bytes to RGB number.
+     *
+     * @param r Red byte.
+     * @param g Green byte.
+     * @param b Blue byte.
+     * @return RGB number.
+     */
     @LuaFunction
     public final int bytesToInt( int r, int g, int b )
     {
         return ColourUtils.bytesToInt( (byte)r, (byte)g, (byte)b );
     }
 
+    /**
+     * Converts RGB chars to RGB number.
+     *
+     * @param rgb RGB chars.
+     * @return RGB number.
+     * @throws LuaException When given string length not equals to 3.
+     */
     @LuaFunction
     public final int stringToInt( ByteBuffer rgb ) throws LuaException
     {
@@ -42,6 +62,15 @@ public class ColourUtilsAPI implements ILuaAPI
         return ColourUtils.bytesToInt( rgb.get( pos ), rgb.get( pos + 1 ), rgb.get( pos + 2 ) );
     }
 
+    /**
+     * Converts RGB number to RGB bytes.
+     *
+     * @param rgb RGB number.
+     * @return RGB bytes.
+     * @cc.treturn number Red byte.
+     * @cc.treturn number Green byte.
+     * @cc.treturn number Blue byte.
+     */
     @LuaFunction
     public final Object[] intToBytes( int rgb )
     {
@@ -49,6 +78,12 @@ public class ColourUtilsAPI implements ILuaAPI
         return new Object[] { bytes[0] & 0xFF, bytes[1] & 0xFF, bytes[2] & 0xFF };
     }
 
+    /**
+     * Converts RGB number to RGB chars.
+     *
+     * @param rgb RGB number.
+     * @return RGB chars.
+     */
     @LuaFunction
     public final String intToString( int rgb )
     {
