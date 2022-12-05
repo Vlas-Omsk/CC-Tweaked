@@ -14,7 +14,7 @@
   (index doc/index.md)
 
   (site
-    (title "CC: Tweaked")
+    (title "CC: Tweaked RGB")
     (logo src/main/resources/pack.png)
     (url https://tweaked.cc/)
     (source-link https://github.com/Vlas-Omsk/CC-Tweaked-RGB/blob/${commit}/${path}#L${line})

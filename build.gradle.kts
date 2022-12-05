@@ -372,7 +372,7 @@ val publishCurseForge by tasks.registering(TaskPublishCurseForge::class) {
 
     val mainFile = upload("282001", tasks.shadowJar.get().archiveFile)
     dependsOn(tasks.shadowJar) // Ughr.
-    mainFile.changelog = "Release notes can be found on the [GitHub repository](https://github.com/cc-tweaked/CC-Tweaked/releases/tag/v$mcVersion-$modVersion)."
+    mainFile.changelog = "Release notes can be found on the [GitHub repository](https://github.com/Vlas-Omsk/CC-Tweaked-RGB/releases/tag/v$mcVersion-$modVersion)."
     mainFile.changelogType = "markdown"
     mainFile.releaseType = if (isStable) "release" else "alpha"
     mainFile.gameVersions.add(mcVersion)
@@ -388,7 +388,7 @@ modrinth {
     versionType.set(if (isStable) "release" else "alpha")
     uploadFile.set(tasks.shadowJar as Any)
     gameVersions.add(mcVersion)
-    changelog.set("Release notes can be found on the [GitHub repository](https://github.com/cc-tweaked/CC-Tweaked/releases/tag/v$mcVersion-$modVersion).")
+    changelog.set("Release notes can be found on the [GitHub repository](https://github.com/Vlas-Omsk/CC-Tweaked-RGB/releases/tag/v$mcVersion-$modVersion).")
 
     syncBodyFrom.set(provider { file("doc/mod-page.md").readText() })
 }
@@ -425,17 +425,17 @@ publishing {
             fg.component(this)
 
             pom {
-                name.set("CC: Tweaked")
-                description.set("CC: Tweaked is a fork of ComputerCraft, adding programmable computers, turtles and more to Minecraft.")
-                url.set("https://github.com/cc-tweaked/CC-Tweaked")
+                name.set("CC: Tweaked RGB")
+                description.set("CC: Tweaked RGB is a fork of CC: Tweaked adding RGB support to Computers, which is a fork of ComputerCraft, adding programmable computers, turtles and more to Minecraft.")
+                url.set("https://github.com/Vlas-Omsk/CC-Tweaked-RGB")
 
                 scm {
-                    url.set("https://github.com/cc-tweaked/CC-Tweaked.git")
+                    url.set("https://github.com/Vlas-Omsk/CC-Tweaked-RGB.git")
                 }
 
                 issueManagement {
                     system.set("github")
-                    url.set("https://github.com/cc-tweaked/CC-Tweaked/issues")
+                    url.set("https://github.com/Vlas-Omsk/CC-Tweaked-RGB/issues")
                 }
 
                 licenses {

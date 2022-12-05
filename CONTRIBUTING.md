@@ -16,11 +16,11 @@ automatically with GitHub, so please don't submit PRs adding/changing translatio
 In order to develop CC: Tweaked, you'll need to download the source code and then run it. This is a pretty simple
 process. When building on Windows, Use `gradlew.bat` instead of `./gradlew`.
 
- - **Clone the repository:** `git clone https://github.com/cc-tweaked/CC-Tweaked.git && cd CC-Tweaked`
- - **Setup Forge:** `./gradlew build`
+ - **Clone the repository:** `git clone https://github.com/Vlas-Omsk/CC-Tweaked-RGB.git && cd CC-Tweaked`
+ - **Setup Forge:** `./gradlew build` | **Just ignore `Task :runGametest FAILED`**
  - **Run Minecraft:** `./gradlew runClient` (or run the `GradleStart` class from your IDE).
  - **Optionally:** For small PRs (especially those only touching Lua code), it may be easier to use GitPod, which
-   provides a pre-configured environment: [![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-2b2b2b?logo=gitpod)](https://gitpod.io/#https://github.com/cc-tweaked/CC-Tweaked/)
+   provides a pre-configured environment: [![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-2b2b2b?logo=gitpod)](https://gitpod.io/#https://github.com/Vlas-Omsk/CC-Tweaked-RGB/)
 
    Do note you will need to download the mod after compiling to test.
 
