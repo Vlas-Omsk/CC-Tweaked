@@ -54,7 +54,7 @@ public final class ColourUtils
         byte g = (byte)(rgb >> 8);
         byte r = (byte)(rgb >> 16);
 
-        return new byte[] { r, g, b };
+        return new byte[] { r, g, b, (byte)255 };
     }
 
     public static int bytesToInt( byte[] rgb )

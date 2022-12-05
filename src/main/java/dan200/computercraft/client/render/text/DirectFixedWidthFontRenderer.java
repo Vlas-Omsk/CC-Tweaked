@@ -220,8 +220,7 @@ public final class DirectFixedWidthFontRenderer
         // Require the pointer to be aligned to a 32-bit boundary.
         if( (addr & 3) != 0 ) throw new IllegalStateException( "Memory is not aligned" );
         // Also assert the length of the array. This appears to help elide bounds checks on the array in some circumstances.
-        // if rgb then rgba.length == 3 !!!
-        if( rgba.length != 3 && rgba.length != 4 ) throw new IllegalStateException();
+        if( rgba.length != 4 ) throw new IllegalStateException();
 
         memPutFloat( addr + 0, x1 );
         memPutFloat( addr + 4, y1 );
