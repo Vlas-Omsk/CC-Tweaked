@@ -468,7 +468,7 @@ function create(parent, nX, nY, nWidth, nHeight, bStartVisible)
     -- @tparam number new_x The new x position of this window.
     -- @tparam number new_y The new y position of this window.
     -- @tparam[opt] number new_width The new width of this window.
-    -- @tparam number new_height The new height of this window.
+    -- @tparam[opt] number new_height The new height of this window.
     -- @tparam[opt] term.Redirect new_parent The new redirect object this
     -- window should draw to.
     -- @changed 1.85.0 Add `new_parent` parameter.
