@@ -217,7 +217,8 @@ end
 channel. The message will be received by every device listening to rednet.
 
 @param message The message to send. This should not contain coroutines or
-functions, as they will be converted to @{nil}.  @tparam[opt] string protocol
+functions, as they will be converted to @{nil}.
+@tparam[opt] string protocol
 The "protocol" to send this message under. When using @{rednet.receive} one can
 filter to only receive messages sent under a particular protocol.
 @see rednet.receive
