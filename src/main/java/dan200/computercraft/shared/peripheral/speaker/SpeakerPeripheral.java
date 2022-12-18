@@ -204,11 +204,10 @@ public abstract class SpeakerPeripheral implements IPeripheral
      * A maximum of 8 notes can be played in a single tick. If this limit is hit, this function will return
      * {@literal false}.
      * <p>
-     * ### Valid instruments
      * The speaker supports [all of Minecraft's noteblock instruments](https://minecraft.fandom.com/wiki/Note_Block#Instruments).
      * These are:
      * <p>
-     * {@code "harp"}, {@code "basedrum"}, {@code "snare"}, {@code "hat"}, {@code "bass"}, @code "flute"},
+     * {@code "harp"}, {@code "basedrum"}, {@code "snare"}, {@code "hat"}, {@code "bass"}, {@code "flute"},
      * {@code "bell"}, {@code "guitar"}, {@code "chime"}, {@code "xylophone"}, {@code "iron_xylophone"},
      * {@code "cow_bell"}, {@code "didgeridoo"}, {@code "bit"}, {@code "banjo"} and {@code "pling"}.
      *

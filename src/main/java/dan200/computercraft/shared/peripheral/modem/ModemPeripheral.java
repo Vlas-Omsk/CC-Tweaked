@@ -54,12 +54,6 @@ import java.util.Set;
  * <li><strong>Wired modems:</strong> These send messages to other any other wired modems connected to the same network
  * (using <em>Networking Cable</em>). They also can be used to attach additional peripherals to a computer.</li></ul>
  *
- * @cc.module modem
- * @cc.see modem_message Queued when a modem receives a message on an {@link #open(int) open channel}.
- * @cc.see rednet A networking API built on top of the modem peripheral.
- * @cc.usage Wrap a modem and a message on channel 15, requesting a response on channel 43. Then wait for a message to
- * arrive on channel 43 and print it.
- *
  * <pre>{@code
  * local modem = peripheral.find("modem") or error("No modem attached", 0)
  * modem.open(43) -- Open 43 so we can receive replies
@@ -84,6 +78,12 @@ import java.util.Set;
  *     <mc-recipe recipe="computercraft:cable"></mc-recipe>
  *     <mc-recipe recipe="computercraft:wired_modem_full_from"></mc-recipe>
  * </div>
+ * 
+ * @cc.module modem
+ * @cc.see modem_message Queued when a modem receives a message on an {@link #open(int) open channel}.
+ * @cc.see rednet A networking API built on top of the modem peripheral.
+ * @cc.usage Wrap a modem and a message on channel 15, requesting a response on channel 43. Then wait for a message to
+ * arrive on channel 43 and print it.
  */
 public abstract class ModemPeripheral implements IPeripheral, IPacketSender, IPacketReceiver
 {
