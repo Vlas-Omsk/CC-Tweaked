@@ -78,7 +78,7 @@ import java.util.Set;
  *     <mc-recipe recipe="computercraft:cable"></mc-recipe>
  *     <mc-recipe recipe="computercraft:wired_modem_full_from"></mc-recipe>
  * </div>
- * 
+ *
  * @cc.module modem
  * @cc.see modem_message Queued when a modem receives a message on an {@link #open(int) open channel}.
  * @cc.see rednet A networking API built on top of the modem peripheral.

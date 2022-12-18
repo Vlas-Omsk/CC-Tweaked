@@ -354,6 +354,8 @@ function rgb8(r, g, b)
     end
 end
 
+--- Use this to determine if the terminal supports rgb colors.
+-- @return boolean
 function isRgbSupported()
     return true
 end
